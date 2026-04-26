@@ -7,25 +7,17 @@ import {
   Text,
   View,
 } from 'react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { CurrentTaskHeroCard } from '../components/CurrentTaskHeroCard';
 import { SegmentedProgressBar } from '../components/SegmentedProgressBar';
 import { TomatoDots } from '../components/TomatoDots';
+import { currentFocusTask, upNextTasks } from '../data/todaySample';
+import { RootStackParamList } from '../navigation/types';
 import { tokens } from '../theme/tokens';
 
-const currentTask = {
-  label: 'Current Tomato',
-  title: 'Draft Q3 Marketing Plan',
-  description: 'Focus on the main story and campaign direction.',
-  completedTomatoes: 2,
-  totalTomatoes: 3,
-};
-
-const upNextTasks = [
-  { id: 'emails', title: 'Reply to client emails', tomatoes: 1 },
-  { id: 'pr', title: 'Review PR #42', tomatoes: 2 },
-];
-
 export function TodayScreen() {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.backgroundBloomTop} pointerEvents="none" />
@@ -49,17 +41,18 @@ export function TodayScreen() {
         </View>
 
         <CurrentTaskHeroCard
-          label={currentTask.label}
-          title={currentTask.title}
-          description={currentTask.description}
-          completedTomatoes={currentTask.completedTomatoes}
-          totalTomatoes={currentTask.totalTomatoes}
+          label={currentFocusTask.label}
+          title={currentFocusTask.title}
+          description={currentFocusTask.description}
+          completedTomatoes={currentFocusTask.completedTomatoes}
+          totalTomatoes={currentFocusTask.totalTomatoes}
         />
 
         <Pressable
           accessibilityRole="button"
           accessibilityHint="Starts one pomodoro for the current task"
           accessibilityLabel="Start Tomato"
+          onPress={() => navigation.navigate('Focus', { task: currentFocusTask })}
           style={({ pressed }) => [
             styles.primaryButton,
             pressed && styles.primaryButtonPressed,

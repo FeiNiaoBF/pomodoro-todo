@@ -1,13 +1,17 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, StyleSheet } from 'react-native';
-import { RootTabParamList } from './types';
+import { RootStackParamList, RootTabParamList } from './types';
+import { createLocalStackNavigator } from './LocalStackNavigator';
 import { TodayScreen } from '../screens/TodayScreen';
 import { TodoScreen } from '../screens/TodoScreen';
 import { StatsScreen } from '../screens/StatsScreen';
+import { FocusScreen } from '../screens/FocusScreen';
+import { BreakScreen } from '../screens/BreakScreen';
 import { tokens } from '../theme/tokens';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+const Stack = createLocalStackNavigator<RootStackParamList>();
 
 function TabGlyph({
   focused,
@@ -54,11 +58,7 @@ function TabGlyph({
   );
 }
 
-/**
- * 根导航器 - 底部 Tab 导航
- * Today / Tasks / Insights 常驻底部
- */
-export function RootNavigator() {
+function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -94,6 +94,20 @@ export function RootNavigator() {
         }}
       />
     </Tab.Navigator>
+  );
+}
+
+export function RootNavigator() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen name="Focus" component={FocusScreen} />
+      <Stack.Screen name="Break" component={BreakScreen} />
+    </Stack.Navigator>
   );
 }
 
