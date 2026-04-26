@@ -1,17 +1,62 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { RootTabParamList } from './types';
-import { TimerScreen } from '../screens/TimerScreen';
+import { TodayScreen } from '../screens/TodayScreen';
 import { TodoScreen } from '../screens/TodoScreen';
 import { StatsScreen } from '../screens/StatsScreen';
-import { SettingsScreen } from '../screens/SettingsScreen';
+import { tokens } from '../theme/tokens';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
+function TabGlyph({
+  focused,
+  variant,
+}: {
+  focused: boolean;
+  variant: 'today' | 'tasks' | 'insights';
+}) {
+  const activeColor = focused ? tokens.colors.navActive : tokens.colors.navInactive;
+
+  if (variant === 'today') {
+    return (
+      <View style={[styles.todayIcon, { borderColor: activeColor }]}>
+        <View style={[styles.todayIconCore, { backgroundColor: activeColor }]} />
+      </View>
+    );
+  }
+
+  if (variant === 'tasks') {
+    return (
+      <View style={styles.tasksIcon}>
+        {[0, 1, 2].map(line => (
+          <View
+            key={line}
+            style={[styles.tasksLine, { backgroundColor: activeColor }]}
+          />
+        ))}
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.insightsIcon}>
+      {[10, 15, 8].map((height, index) => (
+        <View
+          key={index}
+          style={[
+            styles.insightsBar,
+            { height, backgroundColor: activeColor },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
 /**
  * 根导航器 - 底部 Tab 导航
- * 四个主要屏幕常驻底部
+ * Today / Tasks / Insights 常驻底部
  */
 export function RootNavigator() {
   return (
@@ -19,41 +64,33 @@ export function RootNavigator() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: '#E53935',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: tokens.colors.navActive,
+        tabBarInactiveTintColor: tokens.colors.navInactive,
         tabBarLabelStyle: styles.tabBarLabel,
       }}
     >
       <Tab.Screen
-        name="Timer"
-        component={TimerScreen}
+        name="Today"
+        component={TodayScreen}
         options={{
-          tabBarLabel: '计时',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>⏱️</Text>,
+          tabBarLabel: 'Today',
+          tabBarIcon: ({ focused }) => <TabGlyph focused={focused} variant="today" />,
         }}
       />
       <Tab.Screen
-        name="Todos"
+        name="Tasks"
         component={TodoScreen}
         options={{
-          tabBarLabel: '任务',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text>,
+          tabBarLabel: 'Tasks',
+          tabBarIcon: ({ focused }) => <TabGlyph focused={focused} variant="tasks" />,
         }}
       />
       <Tab.Screen
-        name="Stats"
+        name="Insights"
         component={StatsScreen}
         options={{
-          tabBarLabel: '统计',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text>,
-        }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{
-          tabBarLabel: '设置',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>⚙️</Text>,
+          tabBarLabel: 'Insights',
+          tabBarIcon: ({ focused }) => <TabGlyph focused={focused} variant="insights" />,
         }}
       />
     </Tab.Navigator>
@@ -62,26 +99,51 @@ export function RootNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: '#FFF8F0',
-    borderTopColor: '#E0E0E0',
+    backgroundColor: 'rgba(255, 253, 249, 0.96)',
+    borderTopColor: '#F0DDD8',
     borderTopWidth: 1,
-    paddingBottom: 5,
-    paddingTop: 5,
-    height: 65,
+    paddingBottom: 10,
+    paddingTop: 10,
+    height: 74,
   },
   tabBarLabel: {
     fontSize: 12,
-    marginTop: 4,
-    marginBottom: 4,
+    marginTop: 6,
+    fontFamily: tokens.typography.bodyFamily,
+    fontWeight: '600',
   },
-  placeholder: {
-    flex: 1,
-    justifyContent: 'center',
+  todayIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.8,
     alignItems: 'center',
-    backgroundColor: '#FFF8F0',
+    justifyContent: 'center',
   },
-  placeholderText: {
-    fontSize: 18,
-    color: '#666',
+  todayIconCore: {
+    width: 10,
+    height: 10,
+    borderRadius: 10,
+  },
+  tasksIcon: {
+    width: 22,
+    height: 22,
+    justifyContent: 'center',
+    gap: 3,
+  },
+  tasksLine: {
+    height: 2,
+    borderRadius: 2,
+  },
+  insightsIcon: {
+    width: 22,
+    height: 22,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+  insightsBar: {
+    width: 4,
+    borderRadius: 4,
   },
 });
