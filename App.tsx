@@ -1,20 +1,48 @@
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { RootNavigator } from './src/navigation/RootNavigator';
+import { initializeStorage } from './src/utils/StorageService';
 
 export default function App() {
+  const [isReady, setIsReady] = useState(false);
+
+  // 初始化存储
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await initializeStorage();
+        setIsReady(true);
+      } catch (error) {
+        console.error('App initialization failed:', error);
+        setIsReady(true); // 无论如何继续
+      }
+    };
+    init();
+  }, []);
+
+  if (!isReady) {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="dark" />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <RootNavigator />
+      <StatusBar style="dark" />
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
+    backgroundColor: '#FFF8F0',
     justifyContent: 'center',
+    alignItems: 'center',
   },
 });

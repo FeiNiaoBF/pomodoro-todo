@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "_temp_expo_init",
-    "slug": "_temp_expo_init",
+    "name": "Pomodoro Todo",
+    "slug": "pomodoro-todo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,7 +21,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.pomodorotodo"
     },
     "web": {
       "favicon": "./assets/favicon.png"

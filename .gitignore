@@ -31,6 +31,9 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env.*
+!.env.example
 .env*.local
 
 # typescript
@@ -39,3 +42,11 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# local AI/tooling artifacts
+.codex/
+.github/prompts/
+
+# Python cache artifacts
+__pycache__/
+*.py[cod]
