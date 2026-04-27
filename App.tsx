@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { PomodoroProvider } from './src/state/PomodoroProvider';
 import { initializeStorage } from './src/utils/StorageService';
 
 export default function App() {
@@ -31,10 +32,12 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <RootNavigator />
-      <StatusBar style="dark" />
-    </NavigationContainer>
+    <PomodoroProvider>
+      <NavigationContainer>
+        <RootNavigator />
+        <StatusBar style="dark" />
+      </NavigationContainer>
+    </PomodoroProvider>
   );
 }
 

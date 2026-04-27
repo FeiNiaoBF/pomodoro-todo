@@ -6,46 +6,55 @@ import {
   Text,
   View,
 } from 'react-native';
-import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { BreathingBackground } from '../components/BreathingBackground';
-import { currentFocusTask } from '../data/todaySample';
+import { usePomodoro } from '../hooks/usePomodoro';
 import { RootStackParamList } from '../navigation/types';
 import { tokens } from '../theme/tokens';
 
 export function BreakScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, 'Break'>>();
+  const {
+    currentMode,
+    remainingSeconds,
+    status,
+    focusSessionIndex,
+    nextTaskPreview,
+    completeBreak,
+    startNextTomato,
+  } = usePomodoro();
 
-  const task = route.params?.task ?? currentFocusTask;
-  const nextTaskTitle = route.params?.nextTaskTitle ?? 'Reply to client emails';
-  const sessionIndex = route.params?.sessionIndex ?? 2;
-
-  const [secondsLeft, setSecondsLeft] = useState(5 * 60);
+  const [hasCompletedBreak, setHasCompletedBreak] = useState(false);
 
   useEffect(() => {
-    if (secondsLeft === 0) {
+    if (currentMode !== 'short_break' || status !== 'running' || remainingSeconds !== 0 || hasCompletedBreak) {
       return;
     }
 
-    const interval = setInterval(() => {
-      setSecondsLeft(prev => Math.max(0, prev - 1));
-    }, 1000);
+    setHasCompletedBreak(true);
+    completeBreak();
+  }, [completeBreak, currentMode, hasCompletedBreak, remainingSeconds, status]);
 
-    return () => clearInterval(interval);
-  }, [secondsLeft]);
+  useEffect(() => {
+    if (currentMode === 'short_break' && status === 'running' && remainingSeconds > 0) {
+      setHasCompletedBreak(false);
+    }
+  }, [currentMode, remainingSeconds, status]);
 
   const displayTime = useMemo(() => {
-    const minutes = Math.floor(secondsLeft / 60);
-    const seconds = secondsLeft % 60;
+    const minutes = Math.floor(remainingSeconds / 60);
+    const seconds = remainingSeconds % 60;
 
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  }, [secondsLeft]);
+  }, [remainingSeconds]);
 
   const handleStartNextTomato = () => {
-    navigation.navigate('Focus', { task });
+    startNextTomato();
+    navigation.navigate('Focus');
   };
 
   const handleSkipBreak = () => {
+    completeBreak();
     navigation.navigate('MainTabs', { screen: 'Today' });
   };
 
@@ -57,7 +66,7 @@ export function BreakScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.breakLabel}>Short Break</Text>
-          <Text style={styles.breakContext}>After focus session {sessionIndex}</Text>
+          <Text style={styles.breakContext}>After focus session {focusSessionIndex}</Text>
         </View>
 
         <View style={styles.centerSection}>
@@ -79,7 +88,9 @@ export function BreakScreen() {
         <View style={styles.footer}>
           <View style={styles.previewCard}>
             <Text style={styles.previewLabel}>Next</Text>
-            <Text style={styles.previewText}>{nextTaskTitle}</Text>
+            <Text style={styles.previewText}>
+              {nextTaskPreview ? nextTaskPreview.title : 'Start another focus session'}
+            </Text>
           </View>
 
           <Pressable

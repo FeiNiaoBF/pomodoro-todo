@@ -7,69 +7,67 @@ import {
   Text,
   View,
 } from 'react-native';
-import { NavigationProp, RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { BreathingBackground } from '../components/BreathingBackground';
 import { TomatoDots } from '../components/TomatoDots';
-import { currentFocusTask, upNextTasks } from '../data/todaySample';
+import { usePomodoro } from '../hooks/usePomodoro';
 import { RootStackParamList } from '../navigation/types';
+import { InterruptionReason } from '../types/pomodoro';
 import { tokens } from '../theme/tokens';
 
-const INTERRUPTION_OPTIONS = [
-  'Phone',
-  'Message',
-  'People',
-  'Self-distraction',
-  'Other',
-] as const;
-
-type InterruptionOption = (typeof INTERRUPTION_OPTIONS)[number];
+const INTERRUPTION_OPTIONS: Array<{ label: string; value: InterruptionReason }> = [
+  { label: 'Phone', value: 'phone' },
+  { label: 'Message', value: 'message' },
+  { label: 'People', value: 'people' },
+  { label: 'Self-distraction', value: 'self_distraction' },
+  { label: 'Other', value: 'other' },
+];
 
 export function FocusScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, 'Focus'>>();
-  const task = route.params?.task ?? currentFocusTask;
-
-  const [isRunning, setIsRunning] = useState(true);
-  const [secondsLeft, setSecondsLeft] = useState(25 * 60);
+  const {
+    currentTask,
+    currentMode,
+    status,
+    remainingSeconds,
+    focusSessionIndex,
+    pause,
+    resume,
+    completeFocus,
+    saveForLater,
+    logInterruption,
+  } = usePomodoro();
   const [interruptionVisible, setInterruptionVisible] = useState(false);
-  const [selectedInterruption, setSelectedInterruption] = useState<InterruptionOption | null>(null);
+  const [selectedInterruption, setSelectedInterruption] = useState<InterruptionReason | null>(null);
   const [hasCompleted, setHasCompleted] = useState(false);
 
   useEffect(() => {
-    if (!isRunning || secondsLeft === 0) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setSecondsLeft(prev => Math.max(0, prev - 1));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isRunning, secondsLeft]);
-
-  useEffect(() => {
-    if (secondsLeft !== 0 || hasCompleted) {
+    if (currentMode !== 'focus' || status !== 'running' || remainingSeconds !== 0 || hasCompleted) {
       return;
     }
 
     setHasCompleted(true);
-    navigation.navigate('Break', {
-      task,
-      nextTaskTitle: upNextTasks[0]?.title,
-      sessionIndex: 2,
-    });
-  }, [hasCompleted, navigation, secondsLeft, task]);
+    completeFocus();
+    navigation.navigate('Break');
+  }, [completeFocus, currentMode, hasCompleted, navigation, remainingSeconds, status]);
+
+  useEffect(() => {
+    if (currentMode === 'focus') {
+      setHasCompleted(false);
+    }
+  }, [currentMode]);
 
   const displayTime = useMemo(() => {
-    const minutes = Math.floor(secondsLeft / 60);
-    const seconds = secondsLeft % 60;
+    const minutes = Math.floor(remainingSeconds / 60);
+    const seconds = remainingSeconds % 60;
 
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  }, [secondsLeft]);
+  }, [remainingSeconds]);
 
-  const pauseLabel = isRunning ? 'Pause' : 'Resume';
+  const pauseLabel = status === 'running' ? 'Pause' : 'Resume';
 
   const handleSaveForLater = () => {
+    saveForLater();
     navigation.navigate('MainTabs', { screen: 'Today' });
   };
 
@@ -79,12 +77,33 @@ export function FocusScreen() {
     }
 
     setHasCompleted(true);
-    navigation.navigate('Break', {
-      task,
-      nextTaskTitle: upNextTasks[0]?.title,
-      sessionIndex: 2,
-    });
+    completeFocus();
+    navigation.navigate('Break');
   };
+
+  const handleResumeFromInterruption = () => {
+    if (selectedInterruption) {
+      logInterruption(selectedInterruption);
+    }
+
+    setSelectedInterruption(null);
+    setInterruptionVisible(false);
+    resume();
+  };
+
+  const handleSaveAfterInterruption = () => {
+    if (selectedInterruption) {
+      logInterruption(selectedInterruption);
+    }
+
+    setSelectedInterruption(null);
+    setInterruptionVisible(false);
+    handleSaveForLater();
+  };
+
+  if (!currentTask) {
+    return null;
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -93,9 +112,9 @@ export function FocusScreen() {
 
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.sessionLabel}>Focus session 2 of 4</Text>
-          <Text style={styles.taskTitle}>{task.title}</Text>
-          <Text style={styles.taskDescription}>{task.description}</Text>
+          <Text style={styles.sessionLabel}>Focus session {focusSessionIndex} of 4</Text>
+          <Text style={styles.taskTitle}>{currentTask.title}</Text>
+          <Text style={styles.taskDescription}>{currentTask.description}</Text>
         </View>
 
         <View style={styles.timerSection}>
@@ -104,8 +123,8 @@ export function FocusScreen() {
             <Text style={styles.timerText}>{displayTime}</Text>
             <View style={styles.timerMeta}>
               <TomatoDots
-                total={task.totalTomatoes}
-                completed={task.completedTomatoes}
+                total={currentTask.estimatedTomatoes}
+                completed={currentTask.completedTomatoes}
                 showLabel
               />
             </View>
@@ -117,7 +136,7 @@ export function FocusScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={pauseLabel}
-              onPress={() => setIsRunning(prev => !prev)}
+              onPress={status === 'running' ? pause : resume}
               style={({ pressed }) => [
                 styles.secondaryControl,
                 pressed && styles.quietPressed,
@@ -178,14 +197,14 @@ export function FocusScreen() {
 
             <View style={styles.optionsList}>
               {INTERRUPTION_OPTIONS.map(option => {
-                const isSelected = selectedInterruption === option;
+                const isSelected = selectedInterruption === option.value;
 
                 return (
                   <Pressable
-                    key={option}
+                    key={option.value}
                     accessibilityRole="button"
-                    accessibilityLabel={option}
-                    onPress={() => setSelectedInterruption(option)}
+                    accessibilityLabel={option.label}
+                    onPress={() => setSelectedInterruption(option.value)}
                     style={({ pressed }) => [
                       styles.optionChip,
                       isSelected && styles.optionChipSelected,
@@ -198,7 +217,7 @@ export function FocusScreen() {
                         isSelected && styles.optionTextSelected,
                       ]}
                     >
-                      {option}
+                      {option.label}
                     </Text>
                   </Pressable>
                 );
@@ -209,10 +228,7 @@ export function FocusScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Resume"
-                onPress={() => {
-                  setIsRunning(true);
-                  setInterruptionVisible(false);
-                }}
+                onPress={handleResumeFromInterruption}
                 style={({ pressed }) => [
                   styles.modalPrimaryAction,
                   pressed && styles.modalPrimaryActionPressed,
@@ -224,10 +240,7 @@ export function FocusScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Save for later"
-                onPress={() => {
-                  setInterruptionVisible(false);
-                  handleSaveForLater();
-                }}
+                onPress={handleSaveAfterInterruption}
                 style={({ pressed }) => [
                   styles.modalSecondaryAction,
                   pressed && styles.quietPressed,

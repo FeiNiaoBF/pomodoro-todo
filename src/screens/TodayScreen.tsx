@@ -11,12 +11,21 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { CurrentTaskHeroCard } from '../components/CurrentTaskHeroCard';
 import { SegmentedProgressBar } from '../components/SegmentedProgressBar';
 import { TomatoDots } from '../components/TomatoDots';
-import { currentFocusTask, upNextTasks } from '../data/todaySample';
+import { usePomodoro } from '../hooks/usePomodoro';
 import { RootStackParamList } from '../navigation/types';
 import { tokens } from '../theme/tokens';
 
 export function TodayScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { currentTask, upNextTasks, completedSessions, dailyGoal, startTomato } = usePomodoro();
+
+  const completedToday = completedSessions.filter(
+    session => session.mode === 'focus' && session.status === 'completed'
+  ).length;
+
+  if (!currentTask) {
+    return null;
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -35,24 +44,27 @@ export function TodayScreen() {
         <View style={styles.progressCard}>
           <View style={styles.progressHeader}>
             <Text style={styles.progressLabel}>Tomatoes completed today</Text>
-            <Text style={styles.progressValue}>3/8</Text>
+            <Text style={styles.progressValue}>{completedToday}/{dailyGoal}</Text>
           </View>
-          <SegmentedProgressBar total={8} completed={3} />
+          <SegmentedProgressBar total={dailyGoal} completed={Math.min(completedToday, dailyGoal)} />
         </View>
 
         <CurrentTaskHeroCard
-          label={currentFocusTask.label}
-          title={currentFocusTask.title}
-          description={currentFocusTask.description}
-          completedTomatoes={currentFocusTask.completedTomatoes}
-          totalTomatoes={currentFocusTask.totalTomatoes}
+          label="Current Tomato"
+          title={currentTask.title}
+          description={currentTask.description ?? ''}
+          completedTomatoes={currentTask.completedTomatoes}
+          totalTomatoes={currentTask.estimatedTomatoes}
         />
 
         <Pressable
           accessibilityRole="button"
           accessibilityHint="Starts one pomodoro for the current task"
           accessibilityLabel="Start Tomato"
-          onPress={() => navigation.navigate('Focus', { task: currentFocusTask })}
+          onPress={() => {
+            startTomato(currentTask);
+            navigation.navigate('Focus');
+          }}
           style={({ pressed }) => [
             styles.primaryButton,
             pressed && styles.primaryButtonPressed,
@@ -77,8 +89,8 @@ export function TodayScreen() {
                 <View style={styles.queueTextWrap}>
                   <Text style={styles.queueTitle}>{task.title}</Text>
                   <TomatoDots
-                    total={task.tomatoes}
-                    completed={task.tomatoes}
+                    total={task.estimatedTomatoes}
+                    completed={task.estimatedTomatoes}
                     size="sm"
                   />
                 </View>
