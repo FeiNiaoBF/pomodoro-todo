@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
-import { act, cleanup, renderHook } from '@testing-library/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react-native';
 import { usePomodoro } from '../../src/hooks/usePomodoro';
 import { useTasks } from '../../src/hooks/useTasks';
 import { PomodoroProvider } from '../../src/state/PomodoroProvider';
@@ -24,7 +25,9 @@ function useProviderState() {
 }
 
 describe('PomodoroProvider', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+    jest.clearAllMocks();
     jest.useFakeTimers();
   });
 
@@ -34,8 +37,9 @@ describe('PomodoroProvider', () => {
     jest.useRealTimers();
   });
 
-  it('startTomato creates a running focus session', () => {
+  it('startTomato creates a running focus session', async () => {
     const { result } = renderHook(() => useProviderState(), { wrapper });
+    await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));
     const task = result.current.tasks.currentTask;
 
     expect(task).not.toBeNull();
@@ -56,8 +60,9 @@ describe('PomodoroProvider', () => {
     expect(result.current.pomodoro.remainingSeconds).toBe(FOCUS_DURATION_SECONDS);
   });
 
-  it('pause and resume update session status', () => {
+  it('pause and resume update session status', async () => {
     const { result } = renderHook(() => useProviderState(), { wrapper });
+    await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));
     const task = result.current.tasks.currentTask!;
 
     act(() => {
@@ -79,8 +84,9 @@ describe('PomodoroProvider', () => {
     expect(result.current.pomodoro.activeSession?.status).toBe('running');
   });
 
-  it('completeFocus stores a completed focus session, increments tomatoes, and prepares break state', () => {
+  it('completeFocus stores a completed focus session, increments tomatoes, and prepares break state', async () => {
     const { result } = renderHook(() => useProviderState(), { wrapper });
+    await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));
     const task = result.current.tasks.currentTask!;
     const initialSessionCount = result.current.pomodoro.completedSessions.length;
     const initialTomatoes = task.completedTomatoes;
@@ -109,8 +115,9 @@ describe('PomodoroProvider', () => {
     expect(result.current.pomodoro.activeSession?.mode).toBe('short_break');
   });
 
-  it('saveForLater saves the active session and pauses the task', () => {
+  it('saveForLater saves the active session and pauses the task', async () => {
     const { result } = renderHook(() => useProviderState(), { wrapper });
+    await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));
     const task = result.current.tasks.currentTask!;
 
     act(() => {
@@ -130,8 +137,9 @@ describe('PomodoroProvider', () => {
     expect(updatedTask?.state).toBe('paused');
   });
 
-  it('logInterruption adds an interruption without clearing session progress state', () => {
+  it('logInterruption adds an interruption without clearing session progress state', async () => {
     const { result } = renderHook(() => useProviderState(), { wrapper });
+    await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));
     const task = result.current.tasks.currentTask!;
     const initialFocusSessionIndex = result.current.pomodoro.focusSessionIndex;
     const initialCompletedSessionCount = result.current.pomodoro.completedSessions.length;
@@ -155,8 +163,9 @@ describe('PomodoroProvider', () => {
     expect(result.current.pomodoro.completedSessions).toHaveLength(initialCompletedSessionCount);
   });
 
-  it('startNextTomato starts another focus session after a completed focus', () => {
+  it('startNextTomato starts another focus session after a completed focus', async () => {
     const { result } = renderHook(() => useProviderState(), { wrapper });
+    await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));
     const task = result.current.tasks.currentTask!;
     const initialFocusSessionIndex = result.current.pomodoro.focusSessionIndex;
 
@@ -179,8 +188,9 @@ describe('PomodoroProvider', () => {
     expect(result.current.tasks.currentTask?.id).toBe('task-emails');
   });
 
-  it('completeBreak stores a completed break session', () => {
+  it('completeBreak stores a completed break session', async () => {
     const { result } = renderHook(() => useProviderState(), { wrapper });
+    await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));
     const task = result.current.tasks.currentTask!;
 
     act(() => {
@@ -210,8 +220,9 @@ describe('PomodoroProvider', () => {
     expect(result.current.pomodoro.activeSession?.status).toBe('completed');
   });
 
-  it('supports the core start focus, complete focus, break, next focus integration flow', () => {
+  it('supports the core start focus, complete focus, break, next focus integration flow', async () => {
     const { result } = renderHook(() => useProviderState(), { wrapper });
+    await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));
     const task = result.current.tasks.currentTask!;
     const initialTomatoes = task.completedTomatoes;
 

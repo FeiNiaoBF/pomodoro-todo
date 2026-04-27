@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
-import { act, renderHook } from '@testing-library/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { TasksProvider } from '../../src/state/TasksProvider';
 import { useTasks } from '../../src/hooks/useTasks';
 
@@ -8,8 +9,15 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 describe('TasksProvider', () => {
-  it('initializes with seed tasks and derived groups', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+    jest.clearAllMocks();
+  });
+
+  it('initializes with seed tasks and derived groups', async () => {
     const { result } = renderHook(() => useTasks(), { wrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
     expect(result.current.tasks).toHaveLength(6);
     expect(result.current.todayTasks).toHaveLength(3);
@@ -18,8 +26,10 @@ describe('TasksProvider', () => {
     expect(result.current.currentTask?.id).toBe('task-current');
   });
 
-  it('exposes today, backlog, and completed task states', () => {
+  it('exposes today, backlog, and completed task states', async () => {
     const { result } = renderHook(() => useTasks(), { wrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
     expect(result.current.todayTasks.every(task =>
       task.state === 'today' || task.state === 'active' || task.state === 'paused'
@@ -28,8 +38,10 @@ describe('TasksProvider', () => {
     expect(result.current.completedTasks.every(task => task.state === 'completed')).toBe(true);
   });
 
-  it('addTask creates a task with correct defaults', () => {
+  it('addTask creates a task with correct defaults', async () => {
     const { result } = renderHook(() => useTasks(), { wrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
     act(() => {
       result.current.addTask({ title: '  Write provider tests  ' });
@@ -46,8 +58,10 @@ describe('TasksProvider', () => {
     expect(addedTask?.updatedAt).toEqual(expect.any(Number));
   });
 
-  it('moveTaskToToday changes task state to today', () => {
+  it('moveTaskToToday changes task state to today', async () => {
     const { result } = renderHook(() => useTasks(), { wrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
     act(() => {
       result.current.moveTaskToToday('task-retro');
@@ -57,8 +71,10 @@ describe('TasksProvider', () => {
     expect(result.current.todayTasks.some(task => task.id === 'task-retro')).toBe(true);
   });
 
-  it('setCurrentTask sets one active task and demotes the previous active task', () => {
+  it('setCurrentTask sets one active task and demotes the previous active task', async () => {
     const { result } = renderHook(() => useTasks(), { wrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
     act(() => {
       result.current.setCurrentTask('task-current');
@@ -75,8 +91,10 @@ describe('TasksProvider', () => {
     expect(result.current.tasks.find(task => task.id === 'task-current')?.state).toBe('today');
   });
 
-  it('completeTask sets state to completed and completedAt', () => {
+  it('completeTask sets state to completed and completedAt', async () => {
     const { result } = renderHook(() => useTasks(), { wrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
     act(() => {
       result.current.completeTask('task-emails');
@@ -88,8 +106,10 @@ describe('TasksProvider', () => {
     expect(completedTask?.completedAt).toEqual(expect.any(Number));
   });
 
-  it('archiveTask sets state to archived', () => {
+  it('archiveTask sets state to archived', async () => {
     const { result } = renderHook(() => useTasks(), { wrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
     act(() => {
       result.current.archiveTask('task-emails');
@@ -98,8 +118,10 @@ describe('TasksProvider', () => {
     expect(result.current.tasks.find(task => task.id === 'task-emails')?.state).toBe('archived');
   });
 
-  it('incrementCompletedTomatoes increments count without completing the task', () => {
+  it('incrementCompletedTomatoes increments count without completing the task', async () => {
     const { result } = renderHook(() => useTasks(), { wrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
     act(() => {
       result.current.incrementCompletedTomatoes('task-emails');

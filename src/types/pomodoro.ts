@@ -51,4 +51,5 @@ export interface PomodoroStateSnapshot {
   nextTaskPreview: Task | null;
   upNextTasks: Task[];
   dailyGoal: number;
+  isHydrated: boolean;
 }

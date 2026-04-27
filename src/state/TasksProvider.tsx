@@ -3,10 +3,14 @@ import React, {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { initialTasks } from '../data/todaySample';
+import { runStorageMigrations } from '../storage/migrations';
+import { tasksStorage } from '../storage/tasksStorage';
 import { Task, TaskState } from '../types/task';
 
 interface AddTaskInput {
@@ -26,6 +30,7 @@ interface TasksContextValue {
   currentTask: Task | null;
   upNextTasks: Task[];
   nextTaskPreview: Task | null;
+  isHydrated: boolean;
   addTask: (input: AddTaskInput) => void;
   updateTask: (id: string, patch: Partial<Task>) => void;
   deleteTask: (id: string) => void;
@@ -44,8 +49,61 @@ function sortByCreatedAt(tasks: Task[]) {
 
 export function TasksProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>(sortByCreatedAt(initialTasks));
+  const [isHydrated, setIsHydrated] = useState(false);
+  const hydrationCompleteRef = useRef(false);
+  const changedBeforeHydrationRef = useRef(false);
+  const skippedInitialPersistRef = useRef(false);
+
+  const markTaskMutation = useCallback(() => {
+    if (!hydrationCompleteRef.current) {
+      changedBeforeHydrationRef.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function hydrateTasks() {
+      await runStorageMigrations();
+      const storedTasks = await tasksStorage.loadTasks();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (storedTasks && !changedBeforeHydrationRef.current) {
+        setTasks(sortByCreatedAt(storedTasks));
+      }
+
+      hydrationCompleteRef.current = true;
+      setIsHydrated(true);
+    }
+
+    hydrateTasks();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
+    if (!skippedInitialPersistRef.current) {
+      skippedInitialPersistRef.current = true;
+
+      if (!changedBeforeHydrationRef.current) {
+        return;
+      }
+    }
+
+    tasksStorage.saveTasks(tasks);
+  }, [isHydrated, tasks]);
 
   const updateTask = useCallback((id: string, patch: Partial<Task>) => {
+    markTaskMutation();
     setTasks(prev =>
       prev.map(task =>
         task.id === id
@@ -57,9 +115,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           : task
       )
     );
-  }, []);
+  }, [markTaskMutation]);
 
   const addTask = useCallback((input: AddTaskInput) => {
+    markTaskMutation();
     const now = Date.now();
     const nextState = input.state ?? 'backlog';
 
@@ -77,17 +136,19 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     };
 
     setTasks(prev => [...prev, nextTask]);
-  }, []);
+  }, [markTaskMutation]);
 
   const deleteTask = useCallback((id: string) => {
+    markTaskMutation();
     setTasks(prev => prev.filter(task => task.id !== id));
-  }, []);
+  }, [markTaskMutation]);
 
   const moveTaskToToday = useCallback((id: string) => {
     updateTask(id, { state: 'today' });
   }, [updateTask]);
 
   const setCurrentTask = useCallback((id: string) => {
+    markTaskMutation();
     setTasks(prev =>
       prev.map(task => {
         if (task.id === id) {
@@ -109,7 +170,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         return task;
       })
     );
-  }, []);
+  }, [markTaskMutation]);
 
   const archiveTask = useCallback((id: string) => {
     updateTask(id, { state: 'archived' });
@@ -123,6 +184,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   }, [updateTask]);
 
   const incrementCompletedTomatoes = useCallback((id: string) => {
+    markTaskMutation();
     setTasks(prev =>
       prev.map(task =>
         task.id === id
@@ -134,7 +196,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           : task
       )
     );
-  }, []);
+  }, [markTaskMutation]);
 
   const currentTask = useMemo(() => {
     return (
@@ -181,6 +243,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     currentTask,
     upNextTasks,
     nextTaskPreview,
+    isHydrated,
     addTask,
     updateTask,
     deleteTask,
@@ -198,6 +261,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     currentTask,
     deleteTask,
     incrementCompletedTomatoes,
+    isHydrated,
     moveTaskToToday,
     nextTaskPreview,
     setCurrentTask,
