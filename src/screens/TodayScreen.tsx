@@ -39,7 +39,20 @@ export function TodayScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.greeting}>Good morning</Text>
+          <View style={styles.headerTopRow}>
+            <Text style={styles.greeting}>Good morning</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Open settings"
+              onPress={() => navigation.navigate('Settings')}
+              style={({ pressed }) => [
+                styles.settingsButton,
+                pressed && styles.settingsButtonPressed,
+              ]}
+            >
+              <Text style={styles.settingsButtonText}>Settings</Text>
+            </Pressable>
+          </View>
           <Text style={styles.title}>Today&apos;s Focus</Text>
         </View>
 
@@ -140,12 +153,39 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 4,
   },
+  headerTopRow: {
+    minHeight: 34,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 6,
+  },
   greeting: {
     fontSize: 14,
     lineHeight: 20,
     color: tokens.colors.muted,
     fontFamily: tokens.typography.bodyFamily,
-    marginBottom: 8,
+  },
+  settingsButton: {
+    minHeight: 34,
+    borderRadius: tokens.radius.pill,
+    borderWidth: 1,
+    borderColor: '#E8D6D1',
+    backgroundColor: 'rgba(255, 253, 249, 0.72)',
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingsButtonPressed: {
+    backgroundColor: tokens.colors.surfaceSoft,
+  },
+  settingsButtonText: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: tokens.colors.muted,
+    fontFamily: tokens.typography.bodyFamily,
+    fontWeight: '700',
   },
   title: {
     fontSize: tokens.typography.title,

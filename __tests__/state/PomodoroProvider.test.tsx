@@ -4,6 +4,7 @@ import { act, cleanup, renderHook, waitFor } from '@testing-library/react-native
 import { usePomodoro } from '../../src/hooks/usePomodoro';
 import { useTasks } from '../../src/hooks/useTasks';
 import { PomodoroProvider } from '../../src/state/PomodoroProvider';
+import { SettingsProvider } from '../../src/state/SettingsProvider';
 import { TasksProvider } from '../../src/state/TasksProvider';
 
 const FOCUS_DURATION_SECONDS = 25 * 60;
@@ -11,9 +12,11 @@ const SHORT_BREAK_DURATION_SECONDS = 5 * 60;
 
 function wrapper({ children }: { children: ReactNode }) {
   return (
-    <TasksProvider>
-      <PomodoroProvider>{children}</PomodoroProvider>
-    </TasksProvider>
+    <SettingsProvider>
+      <TasksProvider>
+        <PomodoroProvider>{children}</PomodoroProvider>
+      </TasksProvider>
+    </SettingsProvider>
   );
 }
 

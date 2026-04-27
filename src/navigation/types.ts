@@ -16,4 +16,5 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<RootTabParamList> | undefined;
   Focus: undefined;
   Break: undefined;
+  Settings: undefined;
 };

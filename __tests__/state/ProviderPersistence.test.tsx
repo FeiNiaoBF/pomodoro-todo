@@ -4,6 +4,7 @@ import { act, cleanup, renderHook, waitFor } from '@testing-library/react-native
 import { usePomodoro } from '../../src/hooks/usePomodoro';
 import { useTasks } from '../../src/hooks/useTasks';
 import { PomodoroProvider } from '../../src/state/PomodoroProvider';
+import { SettingsProvider } from '../../src/state/SettingsProvider';
 import { TasksProvider } from '../../src/state/TasksProvider';
 import { STORAGE_KEYS } from '../../src/storage/storageKeys';
 import { Task } from '../../src/types/task';
@@ -14,9 +15,11 @@ function TasksWrapper({ children }: { children: ReactNode }) {
 
 function AppStateWrapper({ children }: { children: ReactNode }) {
   return (
-    <TasksProvider>
-      <PomodoroProvider>{children}</PomodoroProvider>
-    </TasksProvider>
+    <SettingsProvider>
+      <TasksProvider>
+        <PomodoroProvider>{children}</PomodoroProvider>
+      </TasksProvider>
+    </SettingsProvider>
   );
 }
 

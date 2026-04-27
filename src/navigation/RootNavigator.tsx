@@ -8,6 +8,7 @@ import { TasksScreen } from '../screens/TasksScreen';
 import { InsightsScreen } from '../screens/InsightsScreen';
 import { FocusScreen } from '../screens/FocusScreen';
 import { BreakScreen } from '../screens/BreakScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { tokens } from '../theme/tokens';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -107,6 +108,7 @@ export function RootNavigator() {
       <Stack.Screen name="MainTabs" component={MainTabs} />
       <Stack.Screen name="Focus" component={FocusScreen} />
       <Stack.Screen name="Break" component={BreakScreen} />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
   );
 }

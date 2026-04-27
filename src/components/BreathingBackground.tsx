@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { useSettings } from '../hooks/useSettings';
 import { tokens } from '../theme/tokens';
 
 interface BreathingBackgroundProps {
@@ -17,9 +18,15 @@ export function BreathingBackground({
   size = 284,
   innerScale = 0.76,
 }: BreathingBackgroundProps) {
+  const { settings } = useSettings();
   const breath = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    if (settings.reducedMotion) {
+      breath.setValue(0);
+      return;
+    }
+
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(breath, {
@@ -42,7 +49,7 @@ export function BreathingBackground({
     return () => {
       loop.stop();
     };
-  }, [breath]);
+  }, [breath, settings.reducedMotion]);
 
   const scale = breath.interpolate({
     inputRange: [0, 1],
