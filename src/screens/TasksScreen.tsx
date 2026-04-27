@@ -16,6 +16,16 @@ import { Task } from '../types/task';
 
 type TaskTab = 'today' | 'backlog' | 'completed';
 
+function formatTaskTomatoProgress(task: Task) {
+  if (task.completedTomatoes > task.estimatedTomatoes) {
+    const completedLabel = task.completedTomatoes === 1 ? 'tomato' : 'tomatoes';
+
+    return `${task.completedTomatoes} ${completedLabel} completed - Estimated ${task.estimatedTomatoes}`;
+  }
+
+  return `${task.completedTomatoes}/${task.estimatedTomatoes} tomatoes`;
+}
+
 export function TasksScreen() {
   const theme = useAppTheme();
   const {
@@ -80,7 +90,7 @@ export function TasksScreen() {
             },
           ]}
         >
-          <Text style={[styles.inputLabel, { color: theme.colors.muted }]}>What needs your focus?</Text>
+          <Text style={[styles.inputLabel, { color: theme.colors.muted }]}>Quick add</Text>
           <View style={styles.inputRow}>
             <TextInput
               style={[
@@ -223,7 +233,7 @@ function TaskCard({
       ) : null}
 
       <Text style={[styles.taskMeta, { color: theme.colors.muted }]}>
-        {task.completedTomatoes}/{task.estimatedTomatoes} tomatoes
+        {formatTaskTomatoProgress(task)}
       </Text>
 
       <View style={styles.actionRow}>

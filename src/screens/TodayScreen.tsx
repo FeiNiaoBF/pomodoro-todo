@@ -167,30 +167,45 @@ export function TodayScreen() {
           </View>
 
           <View style={styles.queue}>
-            {displayedUpNextTasks.map((task, index) => (
+            {displayedUpNextTasks.length === 0 ? (
               <View
-                key={task.id}
                 style={[
-                  styles.queueCard,
+                  styles.upNextEmptyCard,
                   {
                     backgroundColor: theme.colors.cardTranslucent,
                     borderColor: theme.colors.outline,
                   },
                 ]}
               >
-                <View style={[styles.queueIndex, { backgroundColor: theme.colors.surfaceSoft }]}>
-                  <Text style={[styles.queueIndexText, { color: theme.colors.primaryHover }]}>0{index + 1}</Text>
-                </View>
-                <View style={styles.queueTextWrap}>
-                  <Text style={[styles.queueTitle, { color: theme.colors.text }]}>{task.title}</Text>
-                  <TomatoDots
-                    total={task.estimatedTomatoes}
-                    completed={task.estimatedTomatoes}
-                    size="sm"
-                  />
-                </View>
+                <Text style={[styles.upNextEmptyTitle, { color: theme.colors.text }]}>No next task yet.</Text>
+                <Text style={[styles.upNextEmptyCopy, { color: theme.colors.muted }]}>Keep one tomato in focus.</Text>
               </View>
-            ))}
+            ) : (
+              displayedUpNextTasks.map((task, index) => (
+                <View
+                  key={task.id}
+                  style={[
+                    styles.queueCard,
+                    {
+                      backgroundColor: theme.colors.cardTranslucent,
+                      borderColor: theme.colors.outline,
+                    },
+                  ]}
+                >
+                  <View style={[styles.queueIndex, { backgroundColor: theme.colors.surfaceSoft }]}>
+                    <Text style={[styles.queueIndexText, { color: theme.colors.primaryHover }]}>0{index + 1}</Text>
+                  </View>
+                  <View style={styles.queueTextWrap}>
+                    <Text style={[styles.queueTitle, { color: theme.colors.text }]}>{task.title}</Text>
+                    <TomatoDots
+                      total={task.estimatedTomatoes}
+                      completed={task.estimatedTomatoes}
+                      size="sm"
+                    />
+                  </View>
+                </View>
+              ))
+            )}
           </View>
         </View>
       </ScrollView>
@@ -387,6 +402,27 @@ const styles = StyleSheet.create({
   },
   queue: {
     gap: 12,
+  },
+  upNextEmptyCard: {
+    borderRadius: tokens.radius.modal,
+    padding: 18,
+    borderWidth: 1,
+    backgroundColor: tokens.colors.cardTranslucent,
+    borderColor: tokens.colors.outline,
+    gap: 6,
+  },
+  upNextEmptyTitle: {
+    fontSize: 17,
+    lineHeight: 22,
+    color: tokens.colors.text,
+    fontFamily: tokens.typography.headingFamily,
+    fontWeight: '700',
+  },
+  upNextEmptyCopy: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: tokens.colors.muted,
+    fontFamily: tokens.typography.bodyFamily,
   },
   queueCard: {
     flexDirection: 'row',

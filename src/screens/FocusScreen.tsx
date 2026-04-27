@@ -139,7 +139,9 @@ export function FocusScreen() {
         <View style={styles.header}>
           <Text style={[styles.sessionLabel, { color: theme.colors.muted }]}>Focus session {focusSessionIndex} of 4</Text>
           <Text style={[styles.taskTitle, { color: theme.colors.text }]}>{currentTask.title}</Text>
-          <Text style={[styles.taskDescription, { color: theme.colors.muted }]}>{currentTask.description}</Text>
+          {currentTask.description ? (
+            <Text style={[styles.taskDescription, { color: theme.colors.muted }]}>{currentTask.description}</Text>
+          ) : null}
         </View>
 
         <View style={styles.timerSection}>
@@ -212,21 +214,20 @@ export function FocusScreen() {
             <Text style={[styles.tertiaryControlText, { color: theme.colors.muted }]}>Save for later</Text>
           </Pressable>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Complete session now"
-            onPress={handleCompleteNow}
-            style={({ pressed }) => [
-              styles.devControl,
-              {
-                backgroundColor: theme.colors.primarySoft,
-                borderColor: theme.colors.outline,
-              },
-              pressed && styles.quietPressed,
-            ]}
-          >
-            <Text style={[styles.devControlText, { color: theme.colors.primaryHover }]}>Complete session</Text>
-          </Pressable>
+          {__DEV__ ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Dev complete session now"
+              onPress={handleCompleteNow}
+              style={({ pressed }) => [
+                styles.devControl,
+                { borderColor: theme.colors.outline },
+                pressed && styles.quietPressed,
+              ]}
+            >
+              <Text style={[styles.devControlText, { color: theme.colors.muted }]}>Dev: Complete session</Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
 
@@ -460,15 +461,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
-    backgroundColor: tokens.colors.primarySoft,
+    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: tokens.colors.outline,
   },
   devControlText: {
     fontSize: 13,
-    color: tokens.colors.primaryHover,
+    color: tokens.colors.muted,
     fontFamily: tokens.typography.bodyFamily,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   quietPressed: {
     opacity: 0.9,

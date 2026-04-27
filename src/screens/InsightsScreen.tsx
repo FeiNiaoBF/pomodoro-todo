@@ -32,6 +32,12 @@ function formatFocusTime(seconds: number) {
   return `${minutes}m`;
 }
 
+function shouldUseGentleFocusCopy(title?: string) {
+  const trimmedTitle = title?.trim() ?? '';
+
+  return trimmedTitle.length < 3 || /^\d+$/.test(trimmedTitle);
+}
+
 export function InsightsScreen() {
   const theme = useAppTheme();
   const { completedSessions, interruptions } = usePomodoro();
@@ -55,10 +61,11 @@ export function InsightsScreen() {
       (total, session) => total + session.actualDuration,
       0
     );
-    const taskProgress =
+    const rawTaskProgress =
       todayTasks.length > 0
         ? Math.round((completedTodayTasks.length / todayTasks.length) * 100)
         : 0;
+    const taskProgress = Math.min(rawTaskProgress, 100);
 
     const weeklyRhythm = Array.from({ length: 7 }, (_, index) => {
       const day = new Date(today);
@@ -83,11 +90,18 @@ export function InsightsScreen() {
       currentStreak: focusSessionsToday.length > 0 ? '1 day' : 'Starting',
       interruptionCount: interruptionsToday.length,
       taskProgress,
+      wentBeyondPlan: rawTaskProgress > 100,
       weeklyRhythm,
     };
   }, [completedSessions, completedTasks, interruptions, todayTasks]);
 
   const maxWeeklyCount = Math.max(1, ...insights.weeklyRhythm.map(day => day.count));
+  const taskPlanText = todayTasks.length === 1
+    ? '1 task is part of today\'s plan.'
+    : `${todayTasks.length} tasks are part of today's plan.`;
+  const heroCopy = currentTask && !shouldUseGentleFocusCopy(currentTask.title)
+    ? `Small steps count. Your current focus is ${currentTask.title}.`
+    : 'Small steps count. Keep going gently.';
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -112,9 +126,7 @@ export function InsightsScreen() {
           <Text style={[styles.heroLabel, { color: theme.colors.primaryHover }]}>Today</Text>
           <Text style={[styles.heroValue, { color: theme.colors.text }]}>{formatFocusTime(insights.focusTimeToday)}</Text>
           <Text style={[styles.heroText, { color: theme.colors.muted }]}>
-            {currentTask
-              ? `Small steps count. Your current focus is ${currentTask.title}.`
-              : 'Small steps count. Choose one task when you are ready.'}
+            {heroCopy}
           </Text>
         </View>
 
@@ -150,7 +162,7 @@ export function InsightsScreen() {
             />
           </View>
           <Text style={[styles.sectionText, { color: theme.colors.muted }]}>
-            {todayTasks.length} tasks are part of today&apos;s plan.
+            {insights.wentBeyondPlan ? "You went beyond today's plan." : taskPlanText}
           </Text>
         </View>
 

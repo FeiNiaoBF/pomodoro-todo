@@ -22,6 +22,7 @@ export function CurrentTaskHeroCard({
   onPress,
 }: CurrentTaskHeroCardProps) {
   const theme = useAppTheme();
+  const hasDescription = description.trim().length > 0;
 
   return (
     <Pressable
@@ -54,10 +55,21 @@ export function CurrentTaskHeroCard({
         </View>
       </View>
 
-      <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
-      <Text style={[styles.description, { color: theme.colors.muted }]}>{description}</Text>
+      <Text style={[styles.title, !hasDescription && styles.titleWithoutDescription, { color: theme.colors.text }]}>
+        {title}
+      </Text>
+      {hasDescription ? (
+        <Text style={[styles.description, { color: theme.colors.muted }]}>{description}</Text>
+      ) : null}
 
-      <View style={[styles.footer, { borderTopColor: theme.colors.outline }]}>
+      <View
+        style={[
+          styles.footer,
+          hasDescription
+            ? { borderTopColor: theme.colors.outline, borderTopWidth: 1, paddingTop: tokens.spacing.sm }
+            : styles.footerWithoutDivider,
+        ]}
+      >
         <TomatoDots
           total={totalTomatoes}
           completed={completedTomatoes}
@@ -114,6 +126,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 12,
   },
+  titleWithoutDescription: {
+    marginBottom: 10,
+  },
   description: {
     fontSize: tokens.typography.body,
     lineHeight: 23,
@@ -121,7 +136,9 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.md,
   },
   footer: {
-    borderTopWidth: 1,
-    paddingTop: tokens.spacing.sm,
+    marginTop: 2,
+  },
+  footerWithoutDivider: {
+    marginTop: 0,
   },
 });
