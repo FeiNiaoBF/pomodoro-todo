@@ -11,12 +11,14 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { CurrentTaskHeroCard } from '../components/CurrentTaskHeroCard';
 import { SegmentedProgressBar } from '../components/SegmentedProgressBar';
 import { TomatoDots } from '../components/TomatoDots';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { usePomodoro } from '../hooks/usePomodoro';
 import { useTasks } from '../hooks/useTasks';
 import { RootStackParamList } from '../navigation/types';
 import { tokens } from '../theme/tokens';
 
 export function TodayScreen() {
+  const theme = useAppTheme();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { completedSessions, dailyGoal, startTomato } = usePomodoro();
   const { currentTask, upNextTasks, setCurrentTask } = useTasks();
@@ -30,9 +32,15 @@ export function TodayScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.backgroundBloomTop} pointerEvents="none" />
-      <View style={styles.backgroundBloomBottom} pointerEvents="none" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <View
+        style={[styles.backgroundBloomTop, { backgroundColor: theme.colors.bloomTop }]}
+        pointerEvents="none"
+      />
+      <View
+        style={[styles.backgroundBloomBottom, { backgroundColor: theme.colors.bloomBottom }]}
+        pointerEvents="none"
+      />
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -40,26 +48,38 @@ export function TodayScreen() {
       >
         <View style={styles.header}>
           <View style={styles.headerTopRow}>
-            <Text style={styles.greeting}>Good morning</Text>
+            <Text style={[styles.greeting, { color: theme.colors.muted }]}>Good morning</Text>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Open settings"
               onPress={() => navigation.navigate('Settings')}
               style={({ pressed }) => [
                 styles.settingsButton,
+                {
+                  backgroundColor: theme.colors.cardTranslucent,
+                  borderColor: theme.colors.outline,
+                },
                 pressed && styles.settingsButtonPressed,
               ]}
             >
-              <Text style={styles.settingsButtonText}>Settings</Text>
+              <Text style={[styles.settingsButtonText, { color: theme.colors.muted }]}>Settings</Text>
             </Pressable>
           </View>
-          <Text style={styles.title}>Today&apos;s Focus</Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Today&apos;s Focus</Text>
         </View>
 
-        <View style={styles.progressCard}>
+        <View
+          style={[
+            styles.progressCard,
+            {
+              backgroundColor: theme.colors.cardStrong,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
           <View style={styles.progressHeader}>
-            <Text style={styles.progressLabel}>Tomatoes completed today</Text>
-            <Text style={styles.progressValue}>{completedToday}/{dailyGoal}</Text>
+            <Text style={[styles.progressLabel, { color: theme.colors.muted }]}>Tomatoes completed today</Text>
+            <Text style={[styles.progressValue, { color: theme.colors.text }]}>{completedToday}/{dailyGoal}</Text>
           </View>
           <SegmentedProgressBar total={dailyGoal} completed={Math.min(completedToday, dailyGoal)} />
         </View>
@@ -83,27 +103,37 @@ export function TodayScreen() {
           }}
           style={({ pressed }) => [
             styles.primaryButton,
+            { backgroundColor: theme.colors.primary },
             pressed && styles.primaryButtonPressed,
           ]}
         >
-          <View style={styles.primaryButtonIndicator} />
-          <Text style={styles.primaryButtonText}>Start Tomato</Text>
+          <View style={[styles.primaryButtonIndicator, { backgroundColor: theme.colors.onPrimary }]} />
+          <Text style={[styles.primaryButtonText, { color: theme.colors.onPrimary }]}>Start Tomato</Text>
         </Pressable>
 
         <View style={styles.upNextSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Up Next</Text>
-            <Text style={styles.sectionMeta}>Keep it light</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Up Next</Text>
+            <Text style={[styles.sectionMeta, { color: theme.colors.muted }]}>Keep it light</Text>
           </View>
 
           <View style={styles.queue}>
             {upNextTasks.map((task, index) => (
-              <View key={task.id} style={styles.queueCard}>
-                <View style={styles.queueIndex}>
-                  <Text style={styles.queueIndexText}>0{index + 1}</Text>
+              <View
+                key={task.id}
+                style={[
+                  styles.queueCard,
+                  {
+                    backgroundColor: theme.colors.cardTranslucent,
+                    borderColor: theme.colors.outline,
+                  },
+                ]}
+              >
+                <View style={[styles.queueIndex, { backgroundColor: theme.colors.surfaceSoft }]}>
+                  <Text style={[styles.queueIndexText, { color: theme.colors.primaryHover }]}>0{index + 1}</Text>
                 </View>
                 <View style={styles.queueTextWrap}>
-                  <Text style={styles.queueTitle}>{task.title}</Text>
+                  <Text style={[styles.queueTitle, { color: theme.colors.text }]}>{task.title}</Text>
                   <TomatoDots
                     total={task.estimatedTomatoes}
                     completed={task.estimatedTomatoes}
@@ -137,7 +167,7 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: '#FEE1D9',
+    backgroundColor: tokens.colors.bloomTop,
     opacity: 0.85,
   },
   backgroundBloomBottom: {
@@ -147,7 +177,7 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: '#FFF0E2',
+    backgroundColor: tokens.colors.bloomBottom,
     opacity: 0.75,
   },
   header: {
@@ -171,14 +201,14 @@ const styles = StyleSheet.create({
     minHeight: 34,
     borderRadius: tokens.radius.pill,
     borderWidth: 1,
-    borderColor: '#E8D6D1',
-    backgroundColor: 'rgba(255, 253, 249, 0.72)',
+    borderColor: tokens.colors.outline,
+    backgroundColor: tokens.colors.cardTranslucent,
     paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   settingsButtonPressed: {
-    backgroundColor: tokens.colors.surfaceSoft,
+    opacity: 0.9,
   },
   settingsButtonText: {
     fontSize: 12,
@@ -195,11 +225,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   progressCard: {
-    backgroundColor: '#FFF9F6',
+    backgroundColor: tokens.colors.cardStrong,
     borderRadius: tokens.radius.modal,
     padding: tokens.spacing.sm,
     borderWidth: 1,
-    borderColor: '#F1D6D1',
+    borderColor: tokens.colors.outline,
   },
   progressHeader: {
     flexDirection: 'row',
@@ -233,17 +263,17 @@ const styles = StyleSheet.create({
     ...tokens.shadow,
   },
   primaryButtonPressed: {
-    backgroundColor: tokens.colors.primaryHover,
+    opacity: 0.94,
   },
   primaryButtonIndicator: {
     width: 10,
     height: 10,
     borderRadius: 10,
-    backgroundColor: '#FFF8F5',
+    backgroundColor: tokens.colors.onPrimary,
   },
   primaryButtonText: {
     fontSize: tokens.typography.button,
-    color: '#FFF8F5',
+    color: tokens.colors.onPrimary,
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '700',
   },
@@ -275,11 +305,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    backgroundColor: 'rgba(255, 253, 249, 0.76)',
+    backgroundColor: tokens.colors.cardTranslucent,
     borderRadius: tokens.radius.modal,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#F0E1DC',
+    borderColor: tokens.colors.outline,
   },
   queueIndex: {
     width: 40,

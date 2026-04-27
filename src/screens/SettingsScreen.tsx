@@ -14,6 +14,7 @@ import {
   OneTomatoTheme,
   settingsLimits,
 } from '../storage/settingsStorage';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { useSettings } from '../hooks/useSettings';
 import { tokens } from '../theme/tokens';
 
@@ -30,13 +31,14 @@ const THEME_OPTIONS: Array<{ label: string; value: OneTomatoTheme }> = [
 ];
 
 export function SettingsScreen() {
+  const theme = useAppTheme();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { settings, updateSettings, resetSettings } = useSettings();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.topBloom} pointerEvents="none" />
-      <View style={styles.bottomBloom} pointerEvents="none" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.topBloom, { backgroundColor: theme.colors.bloomTop }]} pointerEvents="none" />
+      <View style={[styles.bottomBloom, { backgroundColor: theme.colors.bloomBottom }]} pointerEvents="none" />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
@@ -46,17 +48,29 @@ export function SettingsScreen() {
             onPress={() => navigation.goBack()}
             style={({ pressed }) => [
               styles.backButton,
+              {
+                backgroundColor: theme.colors.cardTranslucent,
+                borderColor: theme.colors.outline,
+              },
               pressed && styles.quietPressed,
             ]}
           >
-            <Text style={styles.backButtonText}>Back</Text>
+            <Text style={[styles.backButtonText, { color: theme.colors.muted }]}>Back</Text>
           </Pressable>
-          <Text style={styles.title}>Settings</Text>
-          <Text style={styles.subtitle}>Shape your focus rhythm.</Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Settings</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.muted }]}>Shape your focus rhythm.</Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Focus rhythm</Text>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: theme.colors.cardTranslucent,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
+          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Focus rhythm</Text>
           <SettingStepper
             label="Focus duration"
             value={settings.focusDurationMinutes}
@@ -87,26 +101,34 @@ export function SettingsScreen() {
           />
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Experience</Text>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: theme.colors.cardTranslucent,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
+          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Experience</Text>
           <View style={styles.settingRow}>
             <View style={styles.settingCopy}>
-              <Text style={styles.settingLabel}>Reduced motion</Text>
-              <Text style={styles.settingHint}>Keep movement gentle and minimal.</Text>
+              <Text style={[styles.settingLabel, { color: theme.colors.text }]}>Reduced motion</Text>
+              <Text style={[styles.settingHint, { color: theme.colors.muted }]}>Keep movement gentle and minimal.</Text>
             </View>
             <Switch
               value={settings.reducedMotion}
               onValueChange={value => updateSettings({ reducedMotion: value })}
               trackColor={{
-                false: '#EAD7D1',
-                true: tokens.colors.primarySoft,
+                false: theme.colors.outline,
+                true: theme.colors.primarySoft,
               }}
-              thumbColor={settings.reducedMotion ? tokens.colors.primary : '#FFFDF9'}
+              thumbColor={settings.reducedMotion ? theme.colors.primary : theme.colors.surface}
             />
           </View>
 
           <View style={styles.themeSection}>
-            <Text style={styles.settingLabel}>Theme</Text>
+            <Text style={[styles.settingLabel, { color: theme.colors.text }]}>Theme</Text>
             <View style={styles.themeOptions}>
               {THEME_OPTIONS.map(option => {
                 const isSelected = settings.theme === option.value;
@@ -119,14 +141,17 @@ export function SettingsScreen() {
                     onPress={() => updateSettings({ theme: option.value })}
                     style={({ pressed }) => [
                       styles.themeOption,
-                      isSelected && styles.themeOptionSelected,
+                      {
+                        backgroundColor: isSelected ? theme.colors.primarySoft : theme.colors.input,
+                        borderColor: isSelected ? theme.colors.primary : theme.colors.outline,
+                      },
                       pressed && styles.quietPressed,
                     ]}
                   >
                     <Text
                       style={[
                         styles.themeOptionText,
-                        isSelected && styles.themeOptionTextSelected,
+                        { color: isSelected ? theme.colors.primaryHover : theme.colors.muted },
                       ]}
                     >
                       {option.label}
@@ -144,10 +169,14 @@ export function SettingsScreen() {
           onPress={resetSettings}
           style={({ pressed }) => [
             styles.resetButton,
+            {
+              backgroundColor: theme.colors.cardTranslucent,
+              borderColor: theme.colors.outline,
+            },
             pressed && styles.quietPressed,
           ]}
         >
-          <Text style={styles.resetButtonText}>Reset to defaults</Text>
+          <Text style={[styles.resetButtonText, { color: theme.colors.muted }]}>Reset to defaults</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -167,18 +196,27 @@ function SettingStepper({
   settingKey: NumericSettingKey;
   onChange: (value: number) => void;
 }) {
+  const theme = useAppTheme();
   const limit = settingsLimits[settingKey];
 
   return (
     <View style={styles.settingRow}>
       <View style={styles.settingCopy}>
-        <Text style={styles.settingLabel}>{label}</Text>
-        <Text style={styles.settingHint}>
+        <Text style={[styles.settingLabel, { color: theme.colors.text }]}>{label}</Text>
+        <Text style={[styles.settingHint, { color: theme.colors.muted }]}>
           {limit.min}-{limit.max} {unit}
         </Text>
       </View>
 
-      <View style={styles.stepper}>
+      <View
+        style={[
+          styles.stepper,
+          {
+            backgroundColor: theme.colors.input,
+            borderColor: theme.colors.outline,
+          },
+        ]}
+      >
         <StepButton
           label="Decrease"
           disabled={value <= limit.min}
@@ -187,8 +225,8 @@ function SettingStepper({
           -
         </StepButton>
         <View style={styles.stepperValue}>
-          <Text style={styles.stepperNumber}>{value}</Text>
-          <Text style={styles.stepperUnit}>{unit}</Text>
+          <Text style={[styles.stepperNumber, { color: theme.colors.text }]}>{value}</Text>
+          <Text style={[styles.stepperUnit, { color: theme.colors.muted }]}>{unit}</Text>
         </View>
         <StepButton
           label="Increase"
@@ -213,6 +251,8 @@ function StepButton({
   label: string;
   onPress: () => void;
 }) {
+  const theme = useAppTheme();
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -221,11 +261,21 @@ function StepButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.stepButton,
-        disabled && styles.stepButtonDisabled,
-        pressed && !disabled && styles.stepButtonPressed,
+        {
+          backgroundColor: disabled
+            ? theme.colors.disabled
+            : pressed
+              ? theme.colors.primarySoft
+              : theme.colors.surfaceSoft,
+        },
       ]}
     >
-      <Text style={[styles.stepButtonText, disabled && styles.stepButtonTextDisabled]}>
+      <Text
+        style={[
+          styles.stepButtonText,
+          { color: disabled ? theme.colors.disabledText : theme.colors.primaryHover },
+        ]}
+      >
         {children}
       </Text>
     </Pressable>
@@ -244,7 +294,7 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: '#FFE5DE',
+    backgroundColor: tokens.colors.bloomTop,
     opacity: 0.76,
   },
   bottomBloom: {
@@ -254,7 +304,7 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: '#FFF1E8',
+    backgroundColor: tokens.colors.bloomBottom,
     opacity: 0.72,
   },
   content: {
@@ -271,8 +321,8 @@ const styles = StyleSheet.create({
     minHeight: 36,
     borderRadius: tokens.radius.pill,
     borderWidth: 1,
-    borderColor: '#E8D6D1',
-    backgroundColor: 'rgba(255, 253, 249, 0.78)',
+    borderColor: tokens.colors.outline,
+    backgroundColor: tokens.colors.cardTranslucent,
     paddingHorizontal: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -299,11 +349,11 @@ const styles = StyleSheet.create({
     fontFamily: tokens.typography.bodyFamily,
   },
   card: {
-    backgroundColor: 'rgba(255, 253, 249, 0.9)',
+    backgroundColor: tokens.colors.cardTranslucent,
     borderRadius: tokens.radius.modal,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#F0DDD8',
+    borderColor: tokens.colors.outline,
     gap: 14,
     ...tokens.shadow,
   },
@@ -344,12 +394,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: tokens.radius.card,
     borderWidth: 1,
-    borderColor: '#EAD7D1',
-    backgroundColor: '#FFF8F5',
+    borderColor: tokens.colors.outline,
+    backgroundColor: tokens.colors.input,
     overflow: 'hidden',
   },
   stepButton: {
-    width: 40,
+    width: 44,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
@@ -359,7 +409,7 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.primarySoft,
   },
   stepButtonDisabled: {
-    backgroundColor: '#F7EEE9',
+    backgroundColor: tokens.colors.disabled,
   },
   stepButtonText: {
     fontSize: 20,
@@ -369,7 +419,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   stepButtonTextDisabled: {
-    color: '#C6B4AE',
+    color: tokens.colors.disabledText,
   },
   stepperValue: {
     minWidth: 72,
@@ -404,8 +454,8 @@ const styles = StyleSheet.create({
     minHeight: 44,
     borderRadius: tokens.radius.card,
     borderWidth: 1,
-    borderColor: '#EAD7D1',
-    backgroundColor: '#FFF8F5',
+    borderColor: tokens.colors.outline,
+    backgroundColor: tokens.colors.input,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 8,
@@ -428,8 +478,8 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: tokens.radius.pill,
     borderWidth: 1,
-    borderColor: '#E6D4CF',
-    backgroundColor: 'rgba(255, 253, 249, 0.74)',
+    borderColor: tokens.colors.outline,
+    backgroundColor: tokens.colors.cardTranslucent,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 18,

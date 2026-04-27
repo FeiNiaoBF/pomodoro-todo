@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { BreathingBackground } from '../components/BreathingBackground';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { TomatoDots } from '../components/TomatoDots';
 import { usePomodoro } from '../hooks/usePomodoro';
 import { RootStackParamList } from '../navigation/types';
@@ -24,6 +25,7 @@ const INTERRUPTION_OPTIONS: Array<{ label: string; value: InterruptionReason }> 
 ];
 
 export function FocusScreen() {
+  const theme = useAppTheme();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const {
     currentTask,
@@ -106,22 +108,30 @@ export function FocusScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.topBloom} pointerEvents="none" />
-      <View style={styles.bottomBloom} pointerEvents="none" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.topBloom, { backgroundColor: theme.colors.bloomTop }]} pointerEvents="none" />
+      <View style={[styles.bottomBloom, { backgroundColor: theme.colors.bloomBottom }]} pointerEvents="none" />
 
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.sessionLabel}>Focus session {focusSessionIndex} of 4</Text>
-          <Text style={styles.taskTitle}>{currentTask.title}</Text>
-          <Text style={styles.taskDescription}>{currentTask.description}</Text>
+          <Text style={[styles.sessionLabel, { color: theme.colors.muted }]}>Focus session {focusSessionIndex} of 4</Text>
+          <Text style={[styles.taskTitle, { color: theme.colors.text }]}>{currentTask.title}</Text>
+          <Text style={[styles.taskDescription, { color: theme.colors.muted }]}>{currentTask.description}</Text>
         </View>
 
         <View style={styles.timerSection}>
           <BreathingBackground />
           <View style={styles.timerOverlay}>
-            <Text style={styles.timerText}>{displayTime}</Text>
-            <View style={styles.timerMeta}>
+            <Text style={[styles.timerText, { color: theme.colors.primary }]}>{displayTime}</Text>
+            <View
+              style={[
+                styles.timerMeta,
+                {
+                  backgroundColor: theme.colors.cardTranslucent,
+                  borderColor: theme.colors.outline,
+                },
+              ]}
+            >
               <TomatoDots
                 total={currentTask.estimatedTomatoes}
                 completed={currentTask.completedTomatoes}
@@ -139,10 +149,14 @@ export function FocusScreen() {
               onPress={status === 'running' ? pause : resume}
               style={({ pressed }) => [
                 styles.secondaryControl,
+                {
+                  backgroundColor: theme.colors.cardTranslucent,
+                  borderColor: theme.colors.outline,
+                },
                 pressed && styles.quietPressed,
               ]}
             >
-              <Text style={styles.secondaryControlText}>{pauseLabel}</Text>
+              <Text style={[styles.secondaryControlText, { color: theme.colors.text }]}>{pauseLabel}</Text>
             </Pressable>
 
             <Pressable
@@ -151,10 +165,14 @@ export function FocusScreen() {
               onPress={() => setInterruptionVisible(true)}
               style={({ pressed }) => [
                 styles.secondaryControl,
+                {
+                  backgroundColor: theme.colors.cardTranslucent,
+                  borderColor: theme.colors.outline,
+                },
                 pressed && styles.quietPressed,
               ]}
             >
-              <Text style={styles.secondaryControlText}>Interrupted</Text>
+              <Text style={[styles.secondaryControlText, { color: theme.colors.text }]}>Interrupted</Text>
             </Pressable>
           </View>
 
@@ -164,10 +182,11 @@ export function FocusScreen() {
             onPress={handleSaveForLater}
             style={({ pressed }) => [
               styles.tertiaryControl,
+              { borderColor: theme.colors.outline },
               pressed && styles.quietPressed,
             ]}
           >
-            <Text style={styles.tertiaryControlText}>Save for later</Text>
+            <Text style={[styles.tertiaryControlText, { color: theme.colors.muted }]}>Save for later</Text>
           </Pressable>
 
           <Pressable
@@ -176,10 +195,14 @@ export function FocusScreen() {
             onPress={handleCompleteNow}
             style={({ pressed }) => [
               styles.devControl,
+              {
+                backgroundColor: theme.colors.primarySoft,
+                borderColor: theme.colors.outline,
+              },
               pressed && styles.quietPressed,
             ]}
           >
-            <Text style={styles.devControlText}>Complete session</Text>
+            <Text style={[styles.devControlText, { color: theme.colors.primaryHover }]}>Complete session</Text>
           </Pressable>
         </View>
       </View>
@@ -190,10 +213,18 @@ export function FocusScreen() {
         visible={interruptionVisible}
         onRequestClose={() => setInterruptionVisible(false)}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>What interrupted your focus?</Text>
-            <Text style={styles.modalSupport}>This won&apos;t break your streak.</Text>
+        <View style={[styles.modalBackdrop, { backgroundColor: theme.colors.overlay }]}>
+          <View
+            style={[
+              styles.modalCard,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.outline,
+              },
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>What interrupted your focus?</Text>
+            <Text style={[styles.modalSupport, { color: theme.colors.muted }]}>This won&apos;t break your streak.</Text>
 
             <View style={styles.optionsList}>
               {INTERRUPTION_OPTIONS.map(option => {
@@ -207,14 +238,17 @@ export function FocusScreen() {
                     onPress={() => setSelectedInterruption(option.value)}
                     style={({ pressed }) => [
                       styles.optionChip,
-                      isSelected && styles.optionChipSelected,
+                      {
+                        backgroundColor: isSelected ? theme.colors.primarySoft : theme.colors.cardStrong,
+                        borderColor: isSelected ? theme.colors.primary : theme.colors.outline,
+                      },
                       pressed && styles.quietPressed,
                     ]}
                   >
                     <Text
                       style={[
                         styles.optionText,
-                        isSelected && styles.optionTextSelected,
+                        { color: isSelected ? theme.colors.primaryHover : theme.colors.text },
                       ]}
                     >
                       {option.label}
@@ -231,10 +265,11 @@ export function FocusScreen() {
                 onPress={handleResumeFromInterruption}
                 style={({ pressed }) => [
                   styles.modalPrimaryAction,
-                  pressed && styles.modalPrimaryActionPressed,
+                  { backgroundColor: theme.colors.primary },
+                  pressed && styles.quietPressed,
                 ]}
               >
-                <Text style={styles.modalPrimaryText}>Resume</Text>
+                <Text style={[styles.modalPrimaryText, { color: theme.colors.onPrimary }]}>Resume</Text>
               </Pressable>
 
               <Pressable
@@ -243,10 +278,11 @@ export function FocusScreen() {
                 onPress={handleSaveAfterInterruption}
                 style={({ pressed }) => [
                   styles.modalSecondaryAction,
+                  { borderColor: theme.colors.outline },
                   pressed && styles.quietPressed,
                 ]}
               >
-                <Text style={styles.modalSecondaryText}>Save for later</Text>
+                <Text style={[styles.modalSecondaryText, { color: theme.colors.muted }]}>Save for later</Text>
               </Pressable>
             </View>
           </View>
@@ -268,7 +304,7 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: '#FFE5DE',
+    backgroundColor: tokens.colors.bloomTop,
     opacity: 0.78,
   },
   bottomBloom: {
@@ -278,7 +314,7 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: '#FFF1E8',
+    backgroundColor: tokens.colors.bloomBottom,
     opacity: 0.72,
   },
   content: {
@@ -342,9 +378,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: tokens.radius.pill,
-    backgroundColor: 'rgba(255, 253, 249, 0.84)',
+    backgroundColor: tokens.colors.cardTranslucent,
     borderWidth: 1,
-    borderColor: '#F2DFDA',
+    borderColor: tokens.colors.outline,
   },
   controlsSection: {
     gap: 14,
@@ -357,9 +393,9 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 52,
     borderRadius: tokens.radius.modal,
-    backgroundColor: 'rgba(255, 253, 249, 0.82)',
+    backgroundColor: tokens.colors.cardTranslucent,
     borderWidth: 1,
-    borderColor: '#ECD8D2',
+    borderColor: tokens.colors.outline,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
@@ -375,7 +411,7 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.modal,
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#E7D3CE',
+    borderColor: tokens.colors.outline,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
@@ -392,9 +428,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
-    backgroundColor: 'rgba(255, 224, 220, 0.52)',
+    backgroundColor: tokens.colors.primarySoft,
     borderWidth: 1,
-    borderColor: '#EED2CC',
+    borderColor: tokens.colors.outline,
   },
   devControlText: {
     fontSize: 13,
@@ -407,7 +443,7 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(45, 36, 34, 0.18)',
+    backgroundColor: tokens.colors.overlay,
     alignItems: 'center',
     justifyContent: 'flex-end',
     padding: 18,
@@ -418,7 +454,7 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.hero,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#F0DBD6',
+    borderColor: tokens.colors.outline,
     ...tokens.shadow,
   },
   modalTitle: {
@@ -446,9 +482,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: tokens.radius.pill,
-    backgroundColor: '#FFF7F4',
+    backgroundColor: tokens.colors.cardStrong,
     borderWidth: 1,
-    borderColor: '#EED6D0',
+    borderColor: tokens.colors.outline,
   },
   optionChipSelected: {
     backgroundColor: tokens.colors.primarySoft,
@@ -478,7 +514,7 @@ const styles = StyleSheet.create({
   },
   modalPrimaryText: {
     fontSize: tokens.typography.button,
-    color: '#FFF8F5',
+    color: tokens.colors.onPrimary,
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '700',
   },
@@ -487,7 +523,7 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.modal,
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#E7D3CE',
+    borderColor: tokens.colors.outline,
     alignItems: 'center',
     justifyContent: 'center',
   },

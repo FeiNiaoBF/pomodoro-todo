@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { tokens } from '../theme/tokens';
 
 interface TomatoDotsProps {
@@ -14,10 +15,12 @@ export function TomatoDots({
   total,
   completed,
   size = 'md',
-  tint = tokens.colors.primary,
+  tint,
   showLabel = false,
 }: TomatoDotsProps) {
+  const theme = useAppTheme();
   const dotSize = size === 'sm' ? 10 : 12;
+  const dotTint = tint ?? theme.colors.primary;
 
   return (
     <View style={styles.row}>
@@ -33,8 +36,8 @@ export function TomatoDots({
                   width: dotSize,
                   height: dotSize,
                   borderRadius: dotSize,
-                  borderColor: tint,
-                  backgroundColor: isFilled ? tint : 'transparent',
+                  borderColor: dotTint,
+                  backgroundColor: isFilled ? dotTint : 'transparent',
                 },
               ]}
             >
@@ -42,7 +45,7 @@ export function TomatoDots({
                 style={[
                   styles.dotLeaf,
                   {
-                    borderBottomColor: isFilled ? tint : tokens.colors.outline,
+                    borderBottomColor: isFilled ? dotTint : theme.colors.outline,
                   },
                 ]}
               />
@@ -51,7 +54,7 @@ export function TomatoDots({
         })}
       </View>
       {showLabel ? (
-        <Text style={styles.label}>
+        <Text style={[styles.label, { color: theme.colors.muted }]}>
           {completed}/{total} tomatoes
         </Text>
       ) : null}
@@ -89,7 +92,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: tokens.typography.caption,
-    color: tokens.colors.muted,
     fontFamily: tokens.typography.bodyFamily,
   },
 });

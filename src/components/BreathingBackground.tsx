@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { useSettings } from '../hooks/useSettings';
-import { tokens } from '../theme/tokens';
 
 interface BreathingBackgroundProps {
   outerColor?: string;
@@ -12,12 +12,13 @@ interface BreathingBackgroundProps {
 }
 
 export function BreathingBackground({
-  outerColor = tokens.colors.primarySoft,
-  innerColor = '#FFF7F4',
-  borderColor = '#F3D9D4',
+  outerColor,
+  innerColor,
+  borderColor,
   size = 284,
   innerScale = 0.76,
 }: BreathingBackgroundProps) {
+  const theme = useAppTheme();
   const { settings } = useSettings();
   const breath = useRef(new Animated.Value(0)).current;
 
@@ -83,7 +84,7 @@ export function BreathingBackground({
             width: size,
             height: size,
             borderRadius: outerRadius,
-            backgroundColor: outerColor,
+            backgroundColor: outerColor ?? theme.colors.primarySoft,
             transform: [{ scale }],
             opacity,
           },
@@ -96,8 +97,8 @@ export function BreathingBackground({
             width: innerSize,
             height: innerSize,
             borderRadius: innerRadius,
-            backgroundColor: innerColor,
-            borderColor,
+            backgroundColor: innerColor ?? theme.colors.cardStrong,
+            borderColor: borderColor ?? theme.colors.outline,
           },
         ]}
       />

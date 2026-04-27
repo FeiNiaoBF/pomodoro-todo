@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { tokens } from '../theme/tokens';
 
 interface SegmentedProgressBarProps {
@@ -11,6 +12,8 @@ export function SegmentedProgressBar({
   total,
   completed,
 }: SegmentedProgressBarProps) {
+  const theme = useAppTheme();
+
   return (
     <View style={styles.track} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: total, now: completed }}>
       {Array.from({ length: total }).map((_, index) => {
@@ -20,7 +23,11 @@ export function SegmentedProgressBar({
             key={index}
             style={[
               styles.segment,
-              isActive ? styles.segmentActive : styles.segmentInactive,
+              {
+                backgroundColor: isActive
+                  ? theme.colors.primary
+                  : theme.colors.primarySoft,
+              },
             ]}
           />
         );
@@ -38,11 +45,5 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 10,
     borderRadius: tokens.radius.pill,
-  },
-  segmentActive: {
-    backgroundColor: tokens.colors.primary,
-  },
-  segmentInactive: {
-    backgroundColor: tokens.colors.primarySoft,
   },
 });

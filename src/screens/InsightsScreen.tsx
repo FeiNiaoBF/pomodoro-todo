@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { usePomodoro } from '../hooks/usePomodoro';
 import { useTasks } from '../hooks/useTasks';
 import { tokens } from '../theme/tokens';
@@ -32,6 +33,7 @@ function formatFocusTime(seconds: number) {
 }
 
 export function InsightsScreen() {
+  const theme = useAppTheme();
   const { completedSessions, interruptions } = usePomodoro();
   const { completedTasks, todayTasks, currentTask } = useTasks();
 
@@ -88,20 +90,28 @@ export function InsightsScreen() {
   const maxWeeklyCount = Math.max(1, ...insights.weeklyRhythm.map(day => day.count));
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.topBloom} pointerEvents="none" />
-      <View style={styles.bottomBloom} pointerEvents="none" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.topBloom, { backgroundColor: theme.colors.bloomTop }]} pointerEvents="none" />
+      <View style={[styles.bottomBloom, { backgroundColor: theme.colors.bloomBottom }]} pointerEvents="none" />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>Insights</Text>
-          <Text style={styles.subtitle}>Your rhythm is starting to form.</Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Insights</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.muted }]}>Your rhythm is starting to form.</Text>
         </View>
 
-        <View style={styles.heroCard}>
-          <Text style={styles.heroLabel}>Today</Text>
-          <Text style={styles.heroValue}>{formatFocusTime(insights.focusTimeToday)}</Text>
-          <Text style={styles.heroText}>
+        <View
+          style={[
+            styles.heroCard,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
+          <Text style={[styles.heroLabel, { color: theme.colors.primaryHover }]}>Today</Text>
+          <Text style={[styles.heroValue, { color: theme.colors.text }]}>{formatFocusTime(insights.focusTimeToday)}</Text>
+          <Text style={[styles.heroText, { color: theme.colors.muted }]}>
             {currentTask
               ? `Small steps count. Your current focus is ${currentTask.title}.`
               : 'Small steps count. Choose one task when you are ready.'}
@@ -115,40 +125,67 @@ export function InsightsScreen() {
           <MetricCard label="Interruptions noted" value={String(insights.interruptionCount)} />
         </View>
 
-        <View style={styles.sectionCard}>
+        <View
+          style={[
+            styles.sectionCard,
+            {
+              backgroundColor: theme.colors.cardTranslucent,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Task progress</Text>
-            <Text style={styles.sectionMeta}>{insights.taskProgress}%</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Task progress</Text>
+            <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>{insights.taskProgress}%</Text>
           </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${insights.taskProgress}%` }]} />
+          <View style={[styles.progressTrack, { backgroundColor: theme.colors.surfaceSoft }]}>
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  width: `${insights.taskProgress}%`,
+                  backgroundColor: theme.colors.primary,
+                },
+              ]}
+            />
           </View>
-          <Text style={styles.sectionText}>
+          <Text style={[styles.sectionText, { color: theme.colors.muted }]}>
             {todayTasks.length} tasks are part of today&apos;s plan.
           </Text>
         </View>
 
-        <View style={styles.sectionCard}>
+        <View
+          style={[
+            styles.sectionCard,
+            {
+              backgroundColor: theme.colors.cardTranslucent,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Weekly rhythm</Text>
-            <Text style={styles.sectionMeta}>Light preview</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Weekly rhythm</Text>
+            <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>Light preview</Text>
           </View>
           <View style={styles.rhythmRow}>
             {insights.weeklyRhythm.map(day => (
               <View key={day.key} style={styles.rhythmItem}>
-                <View style={styles.rhythmBarTrack}>
+                <View style={[styles.rhythmBarTrack, { backgroundColor: theme.colors.surfaceSoft }]}>
                   <View
                     style={[
                       styles.rhythmBar,
-                      { height: `${Math.max(12, (day.count / maxWeeklyCount) * 100)}%` },
+                      {
+                        height: `${Math.max(12, (day.count / maxWeeklyCount) * 100)}%`,
+                        backgroundColor: theme.colors.accent,
+                      },
                     ]}
                   />
                 </View>
-                <Text style={styles.rhythmLabel}>{day.label}</Text>
+                <Text style={[styles.rhythmLabel, { color: theme.colors.muted }]}>{day.label}</Text>
               </View>
             ))}
           </View>
-          <Text style={styles.sectionText}>
+          <Text style={[styles.sectionText, { color: theme.colors.muted }]}>
             This is a simple read on completed focus sessions for now.
           </Text>
         </View>
@@ -158,10 +195,20 @@ export function InsightsScreen() {
 }
 
 function MetricCard({ label, value }: { label: string; value: string }) {
+  const theme = useAppTheme();
+
   return (
-    <View style={styles.metricCard}>
-      <Text style={styles.metricValue}>{value}</Text>
-      <Text style={styles.metricLabel}>{label}</Text>
+    <View
+      style={[
+        styles.metricCard,
+        {
+          backgroundColor: theme.colors.cardTranslucent,
+          borderColor: theme.colors.outline,
+        },
+      ]}
+    >
+      <Text style={[styles.metricValue, { color: theme.colors.text }]}>{value}</Text>
+      <Text style={[styles.metricLabel, { color: theme.colors.muted }]}>{label}</Text>
     </View>
   );
 }
@@ -178,7 +225,7 @@ const styles = StyleSheet.create({
     width: 210,
     height: 210,
     borderRadius: 105,
-    backgroundColor: '#FFE5DE',
+    backgroundColor: tokens.colors.bloomTop,
     opacity: 0.78,
   },
   bottomBloom: {
@@ -188,7 +235,7 @@ const styles = StyleSheet.create({
     width: 170,
     height: 170,
     borderRadius: 85,
-    backgroundColor: '#FFF1E8',
+    backgroundColor: tokens.colors.bloomBottom,
     opacity: 0.7,
   },
   content: {
@@ -218,7 +265,7 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.hero,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#F0DDD8',
+    borderColor: tokens.colors.outline,
     ...tokens.shadow,
   },
   heroLabel: {
@@ -254,9 +301,9 @@ const styles = StyleSheet.create({
     minHeight: 104,
     borderRadius: tokens.radius.modal,
     padding: 16,
-    backgroundColor: 'rgba(255, 253, 249, 0.88)',
+    backgroundColor: tokens.colors.cardTranslucent,
     borderWidth: 1,
-    borderColor: '#F0DED9',
+    borderColor: tokens.colors.outline,
     justifyContent: 'space-between',
   },
   metricValue: {
@@ -276,9 +323,9 @@ const styles = StyleSheet.create({
   sectionCard: {
     borderRadius: tokens.radius.modal,
     padding: 18,
-    backgroundColor: 'rgba(255, 253, 249, 0.86)',
+    backgroundColor: tokens.colors.cardTranslucent,
     borderWidth: 1,
-    borderColor: '#F0DED9',
+    borderColor: tokens.colors.outline,
     gap: 14,
   },
   sectionHeader: {
@@ -334,7 +381,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 92,
     borderRadius: tokens.radius.pill,
-    backgroundColor: '#FFF3EF',
+    backgroundColor: tokens.colors.surfaceSoft,
     justifyContent: 'flex-end',
     overflow: 'hidden',
   },

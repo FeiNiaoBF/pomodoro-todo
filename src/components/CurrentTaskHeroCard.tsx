@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { tokens } from '../theme/tokens';
 import { TomatoDots } from './TomatoDots';
 
@@ -20,6 +21,8 @@ export function CurrentTaskHeroCard({
   totalTomatoes,
   onPress,
 }: CurrentTaskHeroCardProps) {
+  const theme = useAppTheme();
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -27,22 +30,34 @@ export function CurrentTaskHeroCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
+        {
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.outline,
+        },
         pressed && onPress ? styles.cardPressed : null,
       ]}
     >
       <View style={styles.topRow}>
-        <View style={styles.labelPill}>
-          <Text style={styles.labelText}>{label}</Text>
+        <View style={[styles.labelPill, { backgroundColor: theme.colors.primarySoft }]}>
+          <Text style={[styles.labelText, { color: theme.colors.primaryHover }]}>{label}</Text>
         </View>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>Ready now</Text>
+        <View
+          style={[
+            styles.badge,
+            {
+              backgroundColor: theme.colors.cardStrong,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
+          <Text style={[styles.badgeText, { color: theme.colors.muted }]}>Ready now</Text>
         </View>
       </View>
 
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.description}>{description}</Text>
+      <Text style={[styles.title, { color: theme.colors.text }]}>{title}</Text>
+      <Text style={[styles.description, { color: theme.colors.muted }]}>{description}</Text>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: theme.colors.outline }]}>
         <TomatoDots
           total={totalTomatoes}
           completed={completedTomatoes}
@@ -55,11 +70,9 @@ export function CurrentTaskHeroCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: tokens.colors.surface,
     borderRadius: tokens.radius.hero,
     padding: tokens.spacing.md,
     borderWidth: 1,
-    borderColor: '#F0D5D0',
     ...tokens.shadow,
   },
   cardPressed: {
@@ -73,36 +86,30 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.sm,
   },
   labelPill: {
-    backgroundColor: tokens.colors.primarySoft,
     borderRadius: tokens.radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   labelText: {
     fontSize: tokens.typography.caption,
-    color: tokens.colors.primaryHover,
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   badge: {
-    backgroundColor: '#FFF7EF',
     borderRadius: tokens.radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderWidth: 1,
-    borderColor: '#F2DACA',
   },
   badgeText: {
     fontSize: tokens.typography.caption,
-    color: tokens.colors.muted,
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '600',
   },
   title: {
     fontSize: 30,
     lineHeight: 36,
-    color: tokens.colors.text,
     fontFamily: tokens.typography.headingFamily,
     fontWeight: '700',
     marginBottom: 12,
@@ -110,13 +117,11 @@ const styles = StyleSheet.create({
   description: {
     fontSize: tokens.typography.body,
     lineHeight: 23,
-    color: tokens.colors.muted,
     fontFamily: tokens.typography.bodyFamily,
     marginBottom: tokens.spacing.md,
   },
   footer: {
     borderTopWidth: 1,
-    borderTopColor: '#F3E6E1',
     paddingTop: tokens.spacing.sm,
   },
 });

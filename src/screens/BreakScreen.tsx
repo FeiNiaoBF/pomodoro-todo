@@ -8,11 +8,13 @@ import {
 } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { BreathingBackground } from '../components/BreathingBackground';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { usePomodoro } from '../hooks/usePomodoro';
 import { RootStackParamList } from '../navigation/types';
 import { tokens } from '../theme/tokens';
 
 export function BreakScreen() {
+  const theme = useAppTheme();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const {
     currentMode,
@@ -59,36 +61,44 @@ export function BreakScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.topBloom} pointerEvents="none" />
-      <View style={styles.bottomBloom} pointerEvents="none" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.topBloom, { backgroundColor: theme.colors.bloomTop }]} pointerEvents="none" />
+      <View style={[styles.bottomBloom, { backgroundColor: theme.colors.bloomBottom }]} pointerEvents="none" />
 
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.breakLabel}>Short Break</Text>
-          <Text style={styles.breakContext}>After focus session {focusSessionIndex}</Text>
+          <Text style={[styles.breakLabel, { color: theme.colors.accent }]}>Short Break</Text>
+          <Text style={[styles.breakContext, { color: theme.colors.muted }]}>After focus session {focusSessionIndex}</Text>
         </View>
 
         <View style={styles.centerSection}>
           <BreathingBackground
-            outerColor={tokens.colors.accentSoft}
-            innerColor="#FFF8EF"
-            borderColor="#F2DEC7"
+            outerColor={theme.colors.accentSoft}
+            innerColor={theme.colors.cardStrong}
+            borderColor={theme.colors.outline}
             size={304}
             innerScale={0.74}
           />
 
           <View style={styles.centerOverlay}>
-            <Text style={styles.timerText}>{displayTime}</Text>
-            <Text style={styles.headline}>Time to breathe.</Text>
-            <Text style={styles.message}>Rest your eyes. You earned it.</Text>
+            <Text style={[styles.timerText, { color: theme.colors.accent }]}>{displayTime}</Text>
+            <Text style={[styles.headline, { color: theme.colors.text }]}>Time to breathe.</Text>
+            <Text style={[styles.message, { color: theme.colors.muted }]}>Rest your eyes. You earned it.</Text>
           </View>
         </View>
 
         <View style={styles.footer}>
-          <View style={styles.previewCard}>
-            <Text style={styles.previewLabel}>Next</Text>
-            <Text style={styles.previewText}>
+          <View
+            style={[
+              styles.previewCard,
+              {
+                backgroundColor: theme.colors.cardTranslucent,
+                borderColor: theme.colors.outline,
+              },
+            ]}
+          >
+            <Text style={[styles.previewLabel, { color: theme.colors.muted }]}>Next</Text>
+            <Text style={[styles.previewText, { color: theme.colors.text }]}>
               {nextTaskPreview ? nextTaskPreview.title : 'Start another focus session'}
             </Text>
           </View>
@@ -99,10 +109,11 @@ export function BreakScreen() {
             onPress={handleStartNextTomato}
             style={({ pressed }) => [
               styles.primaryButton,
+              { backgroundColor: theme.colors.accent },
               pressed && styles.primaryButtonPressed,
             ]}
           >
-            <Text style={styles.primaryButtonText}>Start Next Tomato</Text>
+            <Text style={[styles.primaryButtonText, { color: theme.colors.onAccent }]}>Start Next Tomato</Text>
           </Pressable>
 
           <Pressable
@@ -111,10 +122,11 @@ export function BreakScreen() {
             onPress={handleSkipBreak}
             style={({ pressed }) => [
               styles.secondaryButton,
+              { borderColor: theme.colors.outline },
               pressed && styles.quietPressed,
             ]}
           >
-            <Text style={styles.secondaryButtonText}>Skip Break</Text>
+            <Text style={[styles.secondaryButtonText, { color: theme.colors.muted }]}>Skip Break</Text>
           </Pressable>
         </View>
       </View>
@@ -134,7 +146,7 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: '#FFEBD7',
+    backgroundColor: tokens.colors.bloomTop,
     opacity: 0.82,
   },
   bottomBloom: {
@@ -144,7 +156,7 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: '#FFF2E1',
+    backgroundColor: tokens.colors.bloomBottom,
     opacity: 0.76,
   },
   content: {
@@ -213,12 +225,12 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   previewCard: {
-    backgroundColor: 'rgba(255, 253, 249, 0.82)',
+    backgroundColor: tokens.colors.cardTranslucent,
     borderRadius: tokens.radius.modal,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#EEDFD0',
+    borderColor: tokens.colors.outline,
   },
   previewLabel: {
     fontSize: 12,
@@ -248,7 +260,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: tokens.typography.button,
-    color: '#FFF9F3',
+    color: tokens.colors.onAccent,
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '700',
   },
@@ -256,7 +268,7 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: tokens.radius.modal,
     borderWidth: 1,
-    borderColor: '#E9D8C8',
+    borderColor: tokens.colors.outline,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,

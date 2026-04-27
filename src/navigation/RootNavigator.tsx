@@ -9,6 +9,7 @@ import { InsightsScreen } from '../screens/InsightsScreen';
 import { FocusScreen } from '../screens/FocusScreen';
 import { BreakScreen } from '../screens/BreakScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { tokens } from '../theme/tokens';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -21,7 +22,8 @@ function TabGlyph({
   focused: boolean;
   variant: 'today' | 'tasks' | 'insights';
 }) {
-  const activeColor = focused ? tokens.colors.navActive : tokens.colors.navInactive;
+  const theme = useAppTheme();
+  const activeColor = focused ? theme.colors.navActive : theme.colors.navInactive;
 
   if (variant === 'today') {
     return (
@@ -60,13 +62,21 @@ function TabGlyph({
 }
 
 function MainTabs() {
+  const theme = useAppTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: tokens.colors.navActive,
-        tabBarInactiveTintColor: tokens.colors.navInactive,
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            backgroundColor: theme.colors.surface,
+            borderTopColor: theme.colors.outline,
+          },
+        ],
+        tabBarActiveTintColor: theme.colors.navActive,
+        tabBarInactiveTintColor: theme.colors.navInactive,
         tabBarLabelStyle: styles.tabBarLabel,
       }}
     >
@@ -115,8 +125,6 @@ export function RootNavigator() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: 'rgba(255, 253, 249, 0.96)',
-    borderTopColor: '#F0DDD8',
     borderTopWidth: 1,
     paddingBottom: 10,
     paddingTop: 10,

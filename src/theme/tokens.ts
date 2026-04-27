@@ -1,21 +1,14 @@
-import { Platform } from 'react-native';
-
-const headingFamily = Platform.select({
-  ios: 'Georgia',
-  android: 'serif',
-  default: 'serif',
-});
-
-const bodyFamily = Platform.select({
-  ios: 'System',
-  android: 'sans-serif',
-  default: 'sans-serif',
-});
+export const fontFamilies = {
+  heading: 'Fraunces_700Bold',
+  body: 'DMSans_400Regular',
+  bodyMedium: 'DMSans_600SemiBold',
+  bodyBold: 'DMSans_700Bold',
+} as const;
 
 export const tokens = {
   colors: {
     primary: '#E85D4F',
-    primaryHover: '#D94F42',
+    primaryHover: '#B83A32',
     primarySoft: '#FFE0DC',
     background: '#F8F6F2',
     surface: '#FFFDF9',
@@ -29,6 +22,16 @@ export const tokens = {
     error: '#BA1A1A',
     navActive: '#5A3934',
     navInactive: '#B29A95',
+    cardTranslucent: 'rgba(255, 253, 249, 0.88)',
+    cardStrong: '#FFF9F6',
+    bloomTop: '#FEE1D9',
+    bloomBottom: '#FFF0E2',
+    onPrimary: '#FFF8F5',
+    onAccent: '#FFF9F3',
+    overlay: 'rgba(45, 36, 34, 0.18)',
+    input: '#FFF9F6',
+    disabled: '#F7EEE9',
+    disabledText: '#C6B4AE',
   },
   spacing: {
     xs: 8,
@@ -46,8 +49,10 @@ export const tokens = {
     pill: 999,
   },
   typography: {
-    headingFamily,
-    bodyFamily,
+    headingFamily: fontFamilies.heading,
+    bodyFamily: fontFamilies.body,
+    bodyMediumFamily: fontFamilies.bodyMedium,
+    bodyBoldFamily: fontFamilies.bodyBold,
     title: 32,
     section: 24,
     body: 15,

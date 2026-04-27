@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { TomatoDots } from '../components/TomatoDots';
+import { useAppTheme } from '../hooks/useAppTheme';
 import { useTasks } from '../hooks/useTasks';
 import { tokens } from '../theme/tokens';
 import { Task } from '../types/task';
@@ -16,6 +17,7 @@ import { Task } from '../types/task';
 type TaskTab = 'today' | 'backlog' | 'completed';
 
 export function TasksScreen() {
+  const theme = useAppTheme();
   const {
     todayTasks,
     backlogTasks,
@@ -61,23 +63,38 @@ export function TasksScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.topBloom} pointerEvents="none" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.topBloom, { backgroundColor: theme.colors.bloomTop }]} pointerEvents="none" />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Tasks</Text>
-          <Text style={styles.headerSubtitle}>Plan lightly. Focus clearly.</Text>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Tasks</Text>
+          <Text style={[styles.headerSubtitle, { color: theme.colors.muted }]}>Plan lightly. Focus clearly.</Text>
         </View>
 
-        <View style={styles.quickAddCard}>
-          <Text style={styles.inputLabel}>What needs your focus?</Text>
+        <View
+          style={[
+            styles.quickAddCard,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
+          <Text style={[styles.inputLabel, { color: theme.colors.muted }]}>What needs your focus?</Text>
           <View style={styles.inputRow}>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: theme.colors.input,
+                  borderColor: theme.colors.outline,
+                  color: theme.colors.text,
+                },
+              ]}
               value={inputValue}
               onChangeText={setInputValue}
               placeholder="What needs your focus?"
-              placeholderTextColor={tokens.colors.muted}
+              placeholderTextColor={theme.colors.muted}
               returnKeyType="done"
               onSubmitEditing={handleAddTask}
             />
@@ -87,10 +104,11 @@ export function TasksScreen() {
               onPress={handleAddTask}
               style={({ pressed }) => [
                 styles.addButton,
-                pressed && styles.addButtonPressed,
+                { backgroundColor: theme.colors.primary },
+                pressed && styles.quietPressed,
               ]}
             >
-              <Text style={styles.addButtonText}>Add</Text>
+              <Text style={[styles.addButtonText, { color: theme.colors.onPrimary }]}>Add</Text>
             </Pressable>
           </View>
         </View>
@@ -108,13 +126,16 @@ export function TasksScreen() {
                 onPress={() => setActiveTab(tab)}
                 style={[
                   styles.tabChip,
-                  isActive && styles.tabChipActive,
+                  {
+                    backgroundColor: isActive ? theme.colors.primarySoft : theme.colors.cardTranslucent,
+                    borderColor: isActive ? theme.colors.primary : theme.colors.outline,
+                  },
                 ]}
               >
                 <Text
                   style={[
                     styles.tabChipText,
-                    isActive && styles.tabChipTextActive,
+                    { color: isActive ? theme.colors.primaryHover : theme.colors.muted },
                   ]}
                 >
                   {label} ({tabCounts[tab]})
@@ -126,9 +147,17 @@ export function TasksScreen() {
 
         <View style={styles.list}>
           {displayTasks.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyTitle}>Nothing here yet.</Text>
-              <Text style={styles.emptyText}>Add a small task and keep the plan light.</Text>
+            <View
+              style={[
+                styles.emptyState,
+                {
+                  backgroundColor: theme.colors.cardTranslucent,
+                  borderColor: theme.colors.outline,
+                },
+              ]}
+            >
+              <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>Nothing here yet.</Text>
+              <Text style={[styles.emptyText, { color: theme.colors.muted }]}>Add a small task and keep the plan light.</Text>
             </View>
           ) : (
             displayTasks.map(task => (
@@ -164,13 +193,22 @@ function TaskCard({
   onCompleteTask: (id: string) => void;
   onArchiveTask: (id: string) => void;
 }) {
+  const theme = useAppTheme();
   const stateLabel = task.state === 'active' ? 'Current focus' : task.state;
 
   return (
-    <View style={styles.taskCard}>
+    <View
+      style={[
+        styles.taskCard,
+        {
+          backgroundColor: theme.colors.cardTranslucent,
+          borderColor: theme.colors.outline,
+        },
+      ]}
+    >
       <View style={styles.taskCardHeader}>
-        <View style={styles.statePill}>
-          <Text style={styles.statePillText}>{stateLabel}</Text>
+        <View style={[styles.statePill, { backgroundColor: theme.colors.surfaceSoft }]}>
+          <Text style={[styles.statePillText, { color: theme.colors.primaryHover }]}>{stateLabel}</Text>
         </View>
         <TomatoDots
           total={task.estimatedTomatoes}
@@ -179,12 +217,12 @@ function TaskCard({
         />
       </View>
 
-      <Text style={styles.taskTitle}>{task.title}</Text>
+      <Text style={[styles.taskTitle, { color: theme.colors.text }]}>{task.title}</Text>
       {task.description ? (
-        <Text style={styles.taskDescription}>{task.description}</Text>
+        <Text style={[styles.taskDescription, { color: theme.colors.muted }]}>{task.description}</Text>
       ) : null}
 
-      <Text style={styles.taskMeta}>
+      <Text style={[styles.taskMeta, { color: theme.colors.muted }]}>
         {task.completedTomatoes}/{task.estimatedTomatoes} tomatoes
       </Text>
 
@@ -216,6 +254,8 @@ function ActionChip({
   onPress: () => void;
   quiet?: boolean;
 }) {
+  const theme = useAppTheme();
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -223,10 +263,21 @@ function ActionChip({
       onPress={onPress}
       style={({ pressed }) => [
         quiet ? styles.actionChipQuiet : styles.actionChip,
+        quiet
+          ? { borderColor: theme.colors.outline }
+          : {
+              backgroundColor: theme.colors.primarySoft,
+              borderColor: theme.colors.outline,
+            },
         pressed && styles.actionChipPressed,
       ]}
     >
-      <Text style={quiet ? styles.actionChipQuietText : styles.actionChipText}>
+      <Text
+        style={[
+          quiet ? styles.actionChipQuietText : styles.actionChipText,
+          { color: quiet ? theme.colors.muted : theme.colors.primaryHover },
+        ]}
+      >
         {label}
       </Text>
     </Pressable>
@@ -245,7 +296,7 @@ const styles = StyleSheet.create({
     width: 190,
     height: 190,
     borderRadius: 95,
-    backgroundColor: '#FEE2DB',
+    backgroundColor: tokens.colors.bloomTop,
     opacity: 0.8,
   },
   content: {
@@ -275,7 +326,7 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.modal,
     padding: tokens.spacing.sm,
     borderWidth: 1,
-    borderColor: '#F0DDD8',
+    borderColor: tokens.colors.outline,
     ...tokens.shadow,
   },
   inputLabel: {
@@ -294,8 +345,8 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: tokens.radius.card,
     borderWidth: 1,
-    borderColor: '#E8D6D1',
-    backgroundColor: '#FFF9F6',
+    borderColor: tokens.colors.outline,
+    backgroundColor: tokens.colors.input,
     paddingHorizontal: 16,
     color: tokens.colors.text,
     fontFamily: tokens.typography.bodyFamily,
@@ -314,7 +365,7 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.primaryHover,
   },
   addButtonText: {
-    color: '#FFF8F5',
+    color: tokens.colors.onPrimary,
     fontSize: 15,
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '700',
@@ -327,9 +378,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: tokens.radius.pill,
-    backgroundColor: '#FFF7F3',
+    backgroundColor: tokens.colors.cardTranslucent,
     borderWidth: 1,
-    borderColor: '#EAD7D1',
+    borderColor: tokens.colors.outline,
   },
   tabChipActive: {
     backgroundColor: tokens.colors.primarySoft,
@@ -348,11 +399,11 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   emptyState: {
-    backgroundColor: 'rgba(255, 253, 249, 0.82)',
+    backgroundColor: tokens.colors.cardTranslucent,
     borderRadius: tokens.radius.modal,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#EEDDD8',
+    borderColor: tokens.colors.outline,
   },
   emptyTitle: {
     fontSize: 20,
@@ -369,11 +420,11 @@ const styles = StyleSheet.create({
     fontFamily: tokens.typography.bodyFamily,
   },
   taskCard: {
-    backgroundColor: 'rgba(255, 253, 249, 0.92)',
+    backgroundColor: tokens.colors.cardTranslucent,
     borderRadius: tokens.radius.modal,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#F0DED9',
+    borderColor: tokens.colors.outline,
   },
   taskCardHeader: {
     flexDirection: 'row',
@@ -427,9 +478,12 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.pill,
     backgroundColor: tokens.colors.primarySoft,
     borderWidth: 1,
-    borderColor: '#E7C4BF',
+    borderColor: tokens.colors.outline,
   },
   actionChipPressed: {
+    opacity: 0.9,
+  },
+  quietPressed: {
     opacity: 0.9,
   },
   actionChipText: {
@@ -444,7 +498,7 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radius.pill,
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#E6D4CF',
+    borderColor: tokens.colors.outline,
   },
   actionChipQuietText: {
     fontSize: 12,
