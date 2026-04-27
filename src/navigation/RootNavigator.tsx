@@ -5,7 +5,7 @@ import { RootStackParamList, RootTabParamList } from './types';
 import { createLocalStackNavigator } from './LocalStackNavigator';
 import { TodayScreen } from '../screens/TodayScreen';
 import { TasksScreen } from '../screens/TasksScreen';
-import { StatsScreen } from '../screens/StatsScreen';
+import { InsightsScreen } from '../screens/InsightsScreen';
 import { FocusScreen } from '../screens/FocusScreen';
 import { BreakScreen } from '../screens/BreakScreen';
 import { tokens } from '../theme/tokens';
@@ -87,7 +87,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Insights"
-        component={StatsScreen}
+        component={InsightsScreen}
         options={{
           tabBarLabel: 'Insights',
           tabBarIcon: ({ focused }) => <TabGlyph focused={focused} variant="insights" />,
