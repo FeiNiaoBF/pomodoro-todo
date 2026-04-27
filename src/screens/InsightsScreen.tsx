@@ -88,7 +88,7 @@ export function InsightsScreen() {
       focusTimeToday,
       completedTomatoes: focusSessionsToday.length,
       completedTasks: completedTodayTasks.length,
-      currentStreak: focusSessionsToday.length > 0 ? '1 day' : 'Starting',
+      currentStreak: focusSessionsToday.length > 0 ? '1 day streak' : 'Starting',
       interruptionCount: interruptionsToday.length,
       taskProgress,
       wentBeyondPlan: rawTaskProgress > 100,

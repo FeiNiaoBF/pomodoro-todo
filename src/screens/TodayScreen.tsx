@@ -88,15 +88,15 @@ export function TodayScreen() {
           ]}
         >
           <View style={styles.progressHeader}>
-            <View style={styles.progressTextGroup}>
-              <Text style={[styles.progressLabel, { color: theme.colors.muted }]}>Tomatoes completed today</Text>
+            <Text style={[styles.progressLabel, { color: theme.colors.muted }]}>Tomatoes completed today</Text>
+            <View style={styles.progressSummaryRow}>
+              <Text style={[styles.progressValue, { color: theme.colors.text }]}>{dailyProgress.primaryText}</Text>
               {dailyProgress.secondaryText ? (
                 <Text style={[styles.progressSecondary, { color: theme.colors.primaryHover }]}>
                   {dailyProgress.secondaryText}
                 </Text>
               ) : null}
             </View>
-            <Text style={[styles.progressValue, { color: theme.colors.text }]}>{dailyProgress.primaryText}</Text>
           </View>
           <SegmentedProgressBar total={dailyProgress.total} completed={dailyProgress.completed} />
         </View>
@@ -202,16 +202,17 @@ export function TodayScreen() {
                     },
                   ]}
                 >
-                  <View style={[styles.queueIndex, { backgroundColor: theme.colors.surfaceSoft }]}>
-                    <Text style={[styles.queueIndexText, { color: theme.colors.primaryHover }]}>0{index + 1}</Text>
-                  </View>
                   <View style={styles.queueTextWrap}>
                     <Text style={[styles.queueTitle, { color: theme.colors.text }]}>{task.title}</Text>
                     <TomatoDots
                       total={task.estimatedTomatoes}
                       completed={task.completedTomatoes}
                       size="sm"
+                      showLabel
                     />
+                  </View>
+                  <View style={[styles.queueIndex, { backgroundColor: theme.colors.surfaceSoft }]}>
+                    <Text style={[styles.queueIndexText, { color: theme.colors.primaryHover }]}>#{index + 1}</Text>
                   </View>
                 </View>
               ))
@@ -301,20 +302,13 @@ const styles = StyleSheet.create({
   progressCard: {
     backgroundColor: tokens.colors.cardStrong,
     borderRadius: tokens.radius.modal,
-    padding: tokens.spacing.sm,
+    padding: 18,
     borderWidth: 1,
     borderColor: tokens.colors.outline,
   },
   progressHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: 12,
+    gap: 8,
     marginBottom: 14,
-  },
-  progressTextGroup: {
-    flex: 1,
-    gap: 4,
   },
   progressLabel: {
     fontSize: 13,
@@ -322,16 +316,24 @@ const styles = StyleSheet.create({
     color: tokens.colors.muted,
     fontFamily: tokens.typography.bodyFamily,
   },
+  progressSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
   progressSecondary: {
     fontSize: 12,
     lineHeight: 16,
     color: tokens.colors.primaryHover,
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '700',
+    flexShrink: 1,
+    textAlign: 'right',
   },
   progressValue: {
-    fontSize: 23,
-    lineHeight: 28,
+    fontSize: 21,
+    lineHeight: 26,
     color: tokens.colors.text,
     fontFamily: tokens.typography.headingFamily,
     fontWeight: '700',
@@ -449,7 +451,7 @@ const styles = StyleSheet.create({
   queueCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
     backgroundColor: tokens.colors.cardTranslucent,
     borderRadius: tokens.radius.modal,
     padding: 16,
@@ -457,28 +459,29 @@ const styles = StyleSheet.create({
     borderColor: tokens.colors.outline,
   },
   queueIndex: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    minWidth: 38,
+    height: 30,
+    borderRadius: tokens.radius.pill,
     backgroundColor: tokens.colors.surfaceSoft,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 10,
   },
   queueIndexText: {
-    fontSize: 13,
+    fontSize: 12,
     color: tokens.colors.primaryHover,
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '700',
   },
   queueTextWrap: {
     flex: 1,
-    gap: 10,
+    gap: 8,
   },
   queueTitle: {
-    fontSize: 15,
-    lineHeight: 21,
+    fontSize: 17,
+    lineHeight: 23,
     color: tokens.colors.text,
-    fontFamily: tokens.typography.bodyFamily,
-    fontWeight: '600',
+    fontFamily: tokens.typography.headingFamily,
+    fontWeight: '700',
   },
 });

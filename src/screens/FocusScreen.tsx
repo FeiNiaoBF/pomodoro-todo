@@ -147,7 +147,7 @@ export function FocusScreen() {
         </View>
 
         <View style={styles.timerSection}>
-          <BreathingBackground />
+          <BreathingBackground size={316} innerScale={0.88} />
           <View style={styles.timerOverlay}>
             <Text style={[styles.timerText, { color: theme.colors.primary }]}>{displayTime}</Text>
             <View
@@ -244,8 +244,8 @@ export function FocusScreen() {
             styles.modalBackdrop,
             {
               backgroundColor: theme.colors.overlay,
-              paddingTop: insets.top + 18,
-              paddingBottom: insets.bottom + 18,
+              paddingTop: insets.top + 20,
+              paddingBottom: insets.bottom + 20,
             },
           ]}
         >
@@ -258,8 +258,10 @@ export function FocusScreen() {
               },
             ]}
           >
-            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>What interrupted your focus?</Text>
-            <Text style={[styles.modalSupport, { color: theme.colors.muted }]}>This won&apos;t break your streak.</Text>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>What interrupted your focus?</Text>
+              <Text style={[styles.modalSupport, { color: theme.colors.muted }]}>This won&apos;t break your streak.</Text>
+            </View>
 
             <View style={styles.optionsList}>
               {INTERRUPTION_OPTIONS.map(option => {
@@ -313,11 +315,14 @@ export function FocusScreen() {
                 onPress={handleSaveAfterInterruption}
                 style={({ pressed }) => [
                   styles.modalSecondaryAction,
-                  { borderColor: theme.colors.outline },
+                  {
+                    backgroundColor: theme.colors.cardTranslucent,
+                    borderColor: theme.colors.outline,
+                  },
                   pressed && styles.quietPressed,
                 ]}
               >
-                <Text style={[styles.modalSecondaryText, { color: theme.colors.muted }]}>Save for later</Text>
+                <Text style={[styles.modalSecondaryText, { color: theme.colors.text }]}>Save for later</Text>
               </Pressable>
             </View>
           </View>
@@ -409,12 +414,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   timerText: {
-    fontSize: 82,
-    lineHeight: 88,
+    minWidth: 276,
+    fontSize: 74,
+    lineHeight: 80,
     color: tokens.colors.primary,
     fontFamily: tokens.typography.headingFamily,
     fontWeight: '700',
-    letterSpacing: -2,
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -1,
+    textAlign: 'center',
   },
   timerMeta: {
     marginTop: 16,
@@ -489,16 +497,19 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.overlay,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    padding: 18,
+    padding: 20,
   },
   modalCard: {
     width: '100%',
     backgroundColor: tokens.colors.surface,
     borderRadius: tokens.radius.hero,
-    padding: 24,
+    padding: 26,
     borderWidth: 1,
     borderColor: tokens.colors.outline,
     ...tokens.shadow,
+  },
+  modalHeader: {
+    marginBottom: 22,
   },
   modalTitle: {
     fontSize: 24,
@@ -506,20 +517,19 @@ const styles = StyleSheet.create({
     color: tokens.colors.text,
     fontFamily: tokens.typography.headingFamily,
     fontWeight: '700',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   modalSupport: {
     fontSize: 14,
     lineHeight: 20,
     color: tokens.colors.muted,
     fontFamily: tokens.typography.bodyFamily,
-    marginBottom: 18,
   },
   optionsList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 24,
+    gap: 12,
+    marginBottom: 26,
   },
   optionChip: {
     minHeight: 44,
@@ -546,10 +556,10 @@ const styles = StyleSheet.create({
     color: tokens.colors.primaryHover,
   },
   modalActions: {
-    gap: 12,
+    gap: 10,
   },
   modalPrimaryAction: {
-    minHeight: 54,
+    minHeight: 56,
     borderRadius: tokens.radius.pill,
     backgroundColor: tokens.colors.primary,
     alignItems: 'center',
@@ -567,7 +577,7 @@ const styles = StyleSheet.create({
   modalSecondaryAction: {
     minHeight: 52,
     borderRadius: tokens.radius.modal,
-    backgroundColor: 'transparent',
+    backgroundColor: tokens.colors.cardTranslucent,
     borderWidth: 1,
     borderColor: tokens.colors.outline,
     alignItems: 'center',
@@ -575,7 +585,7 @@ const styles = StyleSheet.create({
   },
   modalSecondaryText: {
     fontSize: 15,
-    color: tokens.colors.muted,
+    color: tokens.colors.text,
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '600',
   },

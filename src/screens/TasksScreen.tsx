@@ -21,6 +21,7 @@ type TaskTab = 'today' | 'backlog' | 'completed';
 export function TasksScreen() {
   const theme = useAppTheme();
   const {
+    currentTask,
     todayTasks,
     backlogTasks,
     completedTasks,
@@ -166,6 +167,7 @@ export function TasksScreen() {
               <TaskCard
                 key={task.id}
                 task={task}
+                isCurrentTask={task.id === currentTask?.id || task.state === 'active'}
                 activeTab={activeTab}
                 onMoveToToday={moveTaskToToday}
                 onSetCurrentTask={setCurrentTask}
@@ -182,6 +184,7 @@ export function TasksScreen() {
 
 function TaskCard({
   task,
+  isCurrentTask,
   activeTab,
   onMoveToToday,
   onSetCurrentTask,
@@ -189,6 +192,7 @@ function TaskCard({
   onArchiveTask,
 }: {
   task: Task;
+  isCurrentTask: boolean;
   activeTab: TaskTab;
   onMoveToToday: (id: string) => void;
   onSetCurrentTask: (id: string) => void;
@@ -196,7 +200,7 @@ function TaskCard({
   onArchiveTask: (id: string) => void;
 }) {
   const theme = useAppTheme();
-  const stateLabel = getTaskStateLabel(task.state);
+  const stateLabel = isCurrentTask ? 'Current focus' : getTaskStateLabel(task.state);
 
   return (
     <View
@@ -233,7 +237,7 @@ function TaskCard({
           <ActionChip label="Move to Today" onPress={() => onMoveToToday(task.id)} />
         ) : null}
 
-        {activeTab !== 'completed' ? (
+        {activeTab !== 'completed' && !isCurrentTask ? (
           <ActionChip label="Set Focus" onPress={() => onSetCurrentTask(task.id)} />
         ) : null}
 
@@ -448,7 +452,6 @@ const styles = StyleSheet.create({
     color: tokens.colors.primaryHover,
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '700',
-    textTransform: 'capitalize',
   },
   taskTitle: {
     fontSize: 20,
@@ -475,7 +478,7 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 9,
   },
   actionChip: {
     minHeight: 44,

@@ -97,8 +97,8 @@ export function BreakScreen() {
             outerColor={theme.colors.accentSoft}
             innerColor={theme.colors.cardStrong}
             borderColor={theme.colors.outline}
-            size={304}
-            innerScale={0.74}
+            size={316}
+            innerScale={0.82}
           />
 
           <View style={styles.centerOverlay}>
@@ -218,12 +218,15 @@ const styles = StyleSheet.create({
     maxWidth: 280,
   },
   timerText: {
-    fontSize: 78,
-    lineHeight: 84,
+    minWidth: 258,
+    fontSize: 72,
+    lineHeight: 78,
     color: tokens.colors.accent,
     fontFamily: tokens.typography.headingFamily,
     fontWeight: '700',
-    letterSpacing: -2,
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -1,
+    textAlign: 'center',
     marginBottom: 12,
   },
   headline: {
