@@ -16,6 +16,8 @@ import { usePomodoro } from '../hooks/usePomodoro';
 import { useTasks } from '../hooks/useTasks';
 import { RootStackParamList } from '../navigation/types';
 import { tokens } from '../theme/tokens';
+import { getTimeOfDayGreeting } from '../utils/dateLabels';
+import { formatDailyGoalProgress } from '../utils/tomatoProgress';
 
 export function TodayScreen() {
   const theme = useAppTheme();
@@ -32,6 +34,7 @@ export function TodayScreen() {
   const completedToday = completedSessions.filter(
     session => session.mode === 'focus' && session.status === 'completed'
   ).length;
+  const dailyProgress = formatDailyGoalProgress(completedToday, dailyGoal);
 
   const focusTask = currentTask ?? todayTasks[0] ?? null;
   const displayedUpNextTasks = focusTask
@@ -55,7 +58,7 @@ export function TodayScreen() {
       >
         <View style={styles.header}>
           <View style={styles.headerTopRow}>
-            <Text style={[styles.greeting, { color: theme.colors.muted }]}>Good morning</Text>
+            <Text style={[styles.greeting, { color: theme.colors.muted }]}>{getTimeOfDayGreeting()}</Text>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Open settings"
@@ -85,10 +88,17 @@ export function TodayScreen() {
           ]}
         >
           <View style={styles.progressHeader}>
-            <Text style={[styles.progressLabel, { color: theme.colors.muted }]}>Tomatoes completed today</Text>
-            <Text style={[styles.progressValue, { color: theme.colors.text }]}>{completedToday}/{dailyGoal}</Text>
+            <View style={styles.progressTextGroup}>
+              <Text style={[styles.progressLabel, { color: theme.colors.muted }]}>Tomatoes completed today</Text>
+              {dailyProgress.secondaryText ? (
+                <Text style={[styles.progressSecondary, { color: theme.colors.primaryHover }]}>
+                  {dailyProgress.secondaryText}
+                </Text>
+              ) : null}
+            </View>
+            <Text style={[styles.progressValue, { color: theme.colors.text }]}>{dailyProgress.primaryText}</Text>
           </View>
-          <SegmentedProgressBar total={dailyGoal} completed={Math.min(completedToday, dailyGoal)} />
+          <SegmentedProgressBar total={dailyProgress.total} completed={dailyProgress.completed} />
         </View>
 
         {!isHydrated ? (
@@ -199,7 +209,7 @@ export function TodayScreen() {
                     <Text style={[styles.queueTitle, { color: theme.colors.text }]}>{task.title}</Text>
                     <TomatoDots
                       total={task.estimatedTomatoes}
-                      completed={task.estimatedTomatoes}
+                      completed={task.completedTomatoes}
                       size="sm"
                     />
                   </View>
@@ -299,7 +309,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
+    gap: 12,
     marginBottom: 14,
+  },
+  progressTextGroup: {
+    flex: 1,
+    gap: 4,
   },
   progressLabel: {
     fontSize: 13,
@@ -307,8 +322,15 @@ const styles = StyleSheet.create({
     color: tokens.colors.muted,
     fontFamily: tokens.typography.bodyFamily,
   },
+  progressSecondary: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: tokens.colors.primaryHover,
+    fontFamily: tokens.typography.bodyFamily,
+    fontWeight: '700',
+  },
   progressValue: {
-    fontSize: 24,
+    fontSize: 23,
     lineHeight: 28,
     color: tokens.colors.text,
     fontFamily: tokens.typography.headingFamily,

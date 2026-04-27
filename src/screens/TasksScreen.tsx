@@ -13,18 +13,10 @@ import { useAppTheme } from '../hooks/useAppTheme';
 import { useTasks } from '../hooks/useTasks';
 import { tokens } from '../theme/tokens';
 import { Task } from '../types/task';
+import { getTaskStateLabel } from '../utils/taskLabels';
+import { formatTomatoProgress } from '../utils/tomatoProgress';
 
 type TaskTab = 'today' | 'backlog' | 'completed';
-
-function formatTaskTomatoProgress(task: Task) {
-  if (task.completedTomatoes > task.estimatedTomatoes) {
-    const completedLabel = task.completedTomatoes === 1 ? 'tomato' : 'tomatoes';
-
-    return `${task.completedTomatoes} ${completedLabel} completed - Estimated ${task.estimatedTomatoes}`;
-  }
-
-  return `${task.completedTomatoes}/${task.estimatedTomatoes} tomatoes`;
-}
 
 export function TasksScreen() {
   const theme = useAppTheme();
@@ -204,7 +196,7 @@ function TaskCard({
   onArchiveTask: (id: string) => void;
 }) {
   const theme = useAppTheme();
-  const stateLabel = task.state === 'active' ? 'Current focus' : task.state;
+  const stateLabel = getTaskStateLabel(task.state);
 
   return (
     <View
@@ -233,7 +225,7 @@ function TaskCard({
       ) : null}
 
       <Text style={[styles.taskMeta, { color: theme.colors.muted }]}>
-        {formatTaskTomatoProgress(task)}
+        {formatTomatoProgress(task.completedTomatoes, task.estimatedTomatoes)}
       </Text>
 
       <View style={styles.actionRow}>

@@ -48,8 +48,13 @@ Use this checklist on a real device or simulator before adding more product beha
 - Confirm the screen never appears blank while app data is loading.
 - With a slow/cold launch, confirm the loading state says "Preparing your focus rhythm...".
 - With an empty stored task list, confirm the empty state says "Your day is a blank slate." and the Add a task action opens Tasks.
+- Confirm the greeting matches local time: morning, afternoon, or evening.
 - Confirm the Settings entry is tappable and visually aligned in the header.
 - Confirm the progress card, current task card, Start Tomato button, and Up Next cards use the active theme.
+- Complete more tomatoes than the daily goal and confirm the card does not show ratios like "9/8".
+- Confirm over-goal progress shows completed count plus calm goal context.
+- Confirm very short or numeric current task titles still have enough surrounding context.
+- Confirm Up Next tasks with zero completed tomatoes show unfilled tomato dots.
 - Tap Start Tomato and verify the app enters Focus without layout shift.
 - Confirm tomato dots are readable in both themes.
 
@@ -57,7 +62,11 @@ Use this checklist on a real device or simulator before adding more product beha
 
 - Confirm the timer uses Fraunces and remains centered.
 - Confirm the current task title and description are readable.
-- Verify Pause / Resume, Interrupted, Save for later, and Complete session controls are at least 44px tall.
+- Confirm very short or numeric task titles are supported by the Current focus label.
+- Confirm over-completed task progress does not show ratios like "6/1 tomatoes".
+- Confirm the development timer completion control is hidden by default.
+- If `EXPO_PUBLIC_SHOW_DEV_TIMER_CONTROLS=true` is set, confirm the dev control appears and remains visually quiet.
+- Verify Pause / Resume, Interrupted, Save for later, and any enabled dev timer control are at least 44px tall.
 - Confirm the breathing background remains soft and does not obscure the timer.
 - Pause and resume once to confirm visual state remains stable.
 - Confirm accidental swipe-back is disabled and Save for later remains the safe exit path.
@@ -66,6 +75,7 @@ Use this checklist on a real device or simulator before adding more product beha
 ## Break Screen
 
 - Confirm the break timer uses Fraunces and accent color.
+- Confirm the timer remains the visual focus and "Time to breathe." does not crowd the timer on small phones.
 - Confirm the break bloom, next-task preview card, Start Next Tomato button, and Skip Break action use the active theme.
 - Let or force a break complete and confirm the screen state remains readable.
 - Confirm accidental swipe-back is disabled and Skip Break remains the safe exit path.
@@ -77,12 +87,19 @@ Use this checklist on a real device or simulator before adding more product beha
 - Switch Today, Backlog, and Completed tabs in both themes.
 - Confirm tab chips and task action chips are at least 44px tall.
 - Confirm task cards, state pills, tomato dots, metadata, and empty state use the active theme.
+- Confirm task state labels are user-facing: Current focus, Saved for later, Today, Backlog, Done, and Archived.
+- Complete more tomatoes than the estimate and confirm the task metadata does not show ratios like "6/1 tomatoes".
+- Confirm very short or numeric task titles remain readable inside task cards.
 
 ## Insights Screen
 
 - Confirm the hero focus-time card, metric cards, task progress bar, and weekly rhythm bars use the active theme.
 - Confirm supportive copy remains readable and not dashboard-dense.
 - Check that empty or low-data states still feel calm.
+- In Chinese locale, confirm weekly rhythm labels show distinct values: 一 二 三 四 五 六 日.
+- In English locale, confirm weekly rhythm labels do not collapse into seven identical labels.
+- Confirm Task progress remains capped at 100% and uses supportive copy when progress exceeds the plan.
+- Scroll the page midway and confirm no important content is trapped under the status bar.
 
 ## Settings Screen
 

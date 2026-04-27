@@ -15,6 +15,7 @@ import { usePomodoro } from '../hooks/usePomodoro';
 import { RootStackParamList } from '../navigation/types';
 import { InterruptionReason } from '../types/pomodoro';
 import { tokens } from '../theme/tokens';
+import { shouldShowDevTimerControls } from '../utils/devControls';
 
 const INTERRUPTION_OPTIONS: Array<{ label: string; value: InterruptionReason }> = [
   { label: 'Phone', value: 'phone' },
@@ -138,6 +139,7 @@ export function FocusScreen() {
       >
         <View style={styles.header}>
           <Text style={[styles.sessionLabel, { color: theme.colors.muted }]}>Focus session {focusSessionIndex} of 4</Text>
+          <Text style={[styles.currentFocusLabel, { color: theme.colors.primaryHover }]}>Current focus</Text>
           <Text style={[styles.taskTitle, { color: theme.colors.text }]}>{currentTask.title}</Text>
           {currentTask.description ? (
             <Text style={[styles.taskDescription, { color: theme.colors.muted }]}>{currentTask.description}</Text>
@@ -214,7 +216,7 @@ export function FocusScreen() {
             <Text style={[styles.tertiaryControlText, { color: theme.colors.muted }]}>Save for later</Text>
           </Pressable>
 
-          {__DEV__ ? (
+          {shouldShowDevTimerControls() ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Dev complete session now"
@@ -368,7 +370,15 @@ const styles = StyleSheet.create({
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '600',
     letterSpacing: 0.4,
-    marginBottom: 14,
+    marginBottom: 10,
+  },
+  currentFocusLabel: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: tokens.colors.primaryHover,
+    fontFamily: tokens.typography.bodyFamily,
+    fontWeight: '700',
+    marginBottom: 8,
   },
   taskTitle: {
     fontSize: 30,

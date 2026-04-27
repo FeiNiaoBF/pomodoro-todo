@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { tokens } from '../theme/tokens';
+import { formatTomatoProgress, getTomatoDotCounts } from '../utils/tomatoProgress';
 
 interface TomatoDotsProps {
   total: number;
@@ -21,12 +22,13 @@ export function TomatoDots({
   const theme = useAppTheme();
   const dotSize = size === 'sm' ? 10 : 12;
   const dotTint = tint ?? theme.colors.primary;
+  const dotCounts = getTomatoDotCounts(completed, total);
 
   return (
     <View style={styles.row}>
       <View style={styles.dots}>
-        {Array.from({ length: total }).map((_, index) => {
-          const isFilled = index < completed;
+        {Array.from({ length: dotCounts.total }).map((_, index) => {
+          const isFilled = index < dotCounts.completed;
           return (
             <View
               key={`${size}-${index}`}
@@ -55,7 +57,7 @@ export function TomatoDots({
       </View>
       {showLabel ? (
         <Text style={[styles.label, { color: theme.colors.muted }]}>
-          {completed}/{total} tomatoes
+          {formatTomatoProgress(completed, total)}
         </Text>
       ) : null}
     </View>

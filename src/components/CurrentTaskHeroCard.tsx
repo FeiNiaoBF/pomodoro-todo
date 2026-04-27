@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { tokens } from '../theme/tokens';
+import { isShortTaskTitle } from '../utils/taskLabels';
 import { TomatoDots } from './TomatoDots';
 
 interface CurrentTaskHeroCardProps {
@@ -23,6 +24,7 @@ export function CurrentTaskHeroCard({
 }: CurrentTaskHeroCardProps) {
   const theme = useAppTheme();
   const hasDescription = description.trim().length > 0;
+  const hasShortTitle = isShortTaskTitle(title);
 
   return (
     <Pressable
@@ -58,6 +60,9 @@ export function CurrentTaskHeroCard({
       <Text style={[styles.title, !hasDescription && styles.titleWithoutDescription, { color: theme.colors.text }]}>
         {title}
       </Text>
+      {hasShortTitle && !hasDescription ? (
+        <Text style={[styles.titleContext, { color: theme.colors.muted }]}>Current focus</Text>
+      ) : null}
       {hasDescription ? (
         <Text style={[styles.description, { color: theme.colors.muted }]}>{description}</Text>
       ) : null}
@@ -67,7 +72,7 @@ export function CurrentTaskHeroCard({
           styles.footer,
           hasDescription
             ? { borderTopColor: theme.colors.outline, borderTopWidth: 1, paddingTop: tokens.spacing.sm }
-            : styles.footerWithoutDivider,
+            : [styles.footerWithoutDivider, hasShortTitle && styles.footerAfterContext],
         ]}
       >
         <TomatoDots
@@ -129,6 +134,13 @@ const styles = StyleSheet.create({
   titleWithoutDescription: {
     marginBottom: 10,
   },
+  titleContext: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: tokens.typography.bodyFamily,
+    fontWeight: '600',
+    marginBottom: tokens.spacing.sm,
+  },
   description: {
     fontSize: tokens.typography.body,
     lineHeight: 23,
@@ -140,5 +152,8 @@ const styles = StyleSheet.create({
   },
   footerWithoutDivider: {
     marginTop: 0,
+  },
+  footerAfterContext: {
+    marginTop: 2,
   },
 });

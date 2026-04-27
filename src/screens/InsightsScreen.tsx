@@ -10,6 +10,7 @@ import { useAppTheme } from '../hooks/useAppTheme';
 import { usePomodoro } from '../hooks/usePomodoro';
 import { useTasks } from '../hooks/useTasks';
 import { tokens } from '../theme/tokens';
+import { getWeekdayLabel } from '../utils/dateLabels';
 
 function isSameDay(timestamp: number, reference: Date) {
   const date = new Date(timestamp);
@@ -73,7 +74,7 @@ export function InsightsScreen() {
 
       return {
         key: day.toISOString(),
-        label: day.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 1),
+        label: getWeekdayLabel(day),
         count: completedSessions.filter(
           session =>
             session.mode === 'focus' &&
