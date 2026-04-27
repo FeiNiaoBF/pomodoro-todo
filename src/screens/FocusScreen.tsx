@@ -2,12 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BreathingBackground } from '../components/BreathingBackground';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { TomatoDots } from '../components/TomatoDots';
@@ -26,6 +26,7 @@ const INTERRUPTION_OPTIONS: Array<{ label: string; value: InterruptionReason }> 
 
 export function FocusScreen() {
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const {
     currentTask,
@@ -108,11 +109,19 @@ export function FocusScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <View style={[styles.topBloom, { backgroundColor: theme.colors.bloomTop }]} pointerEvents="none" />
       <View style={[styles.bottomBloom, { backgroundColor: theme.colors.bloomBottom }]} pointerEvents="none" />
 
-      <View style={styles.content}>
+      <View
+        style={[
+          styles.content,
+          {
+            paddingTop: insets.top + 18,
+            paddingBottom: insets.bottom + 28,
+          },
+        ]}
+      >
         <View style={styles.header}>
           <Text style={[styles.sessionLabel, { color: theme.colors.muted }]}>Focus session {focusSessionIndex} of 4</Text>
           <Text style={[styles.taskTitle, { color: theme.colors.text }]}>{currentTask.title}</Text>
@@ -213,7 +222,16 @@ export function FocusScreen() {
         visible={interruptionVisible}
         onRequestClose={() => setInterruptionVisible(false)}
       >
-        <View style={[styles.modalBackdrop, { backgroundColor: theme.colors.overlay }]}>
+        <View
+          style={[
+            styles.modalBackdrop,
+            {
+              backgroundColor: theme.colors.overlay,
+              paddingTop: insets.top + 18,
+              paddingBottom: insets.bottom + 18,
+            },
+          ]}
+        >
           <View
             style={[
               styles.modalCard,
@@ -288,7 +306,7 @@ export function FocusScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -479,12 +497,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   optionChip: {
+    minHeight: 44,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: tokens.radius.pill,
     backgroundColor: tokens.colors.cardStrong,
     borderWidth: 1,
     borderColor: tokens.colors.outline,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   optionChipSelected: {
     backgroundColor: tokens.colors.primarySoft,

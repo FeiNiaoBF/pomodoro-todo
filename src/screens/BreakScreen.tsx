@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BreathingBackground } from '../components/BreathingBackground';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { usePomodoro } from '../hooks/usePomodoro';
@@ -15,6 +15,7 @@ import { tokens } from '../theme/tokens';
 
 export function BreakScreen() {
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const {
     currentMode,
@@ -61,11 +62,19 @@ export function BreakScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <View style={[styles.topBloom, { backgroundColor: theme.colors.bloomTop }]} pointerEvents="none" />
       <View style={[styles.bottomBloom, { backgroundColor: theme.colors.bloomBottom }]} pointerEvents="none" />
 
-      <View style={styles.content}>
+      <View
+        style={[
+          styles.content,
+          {
+            paddingTop: insets.top + 20,
+            paddingBottom: insets.bottom + 28,
+          },
+        ]}
+      >
         <View style={styles.header}>
           <Text style={[styles.breakLabel, { color: theme.colors.accent }]}>Short Break</Text>
           <Text style={[styles.breakContext, { color: theme.colors.muted }]}>After focus session {focusSessionIndex}</Text>
@@ -130,7 +139,7 @@ export function BreakScreen() {
           </Pressable>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

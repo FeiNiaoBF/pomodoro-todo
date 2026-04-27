@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAppTheme } from './src/hooks/useAppTheme';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { PomodoroProvider } from './src/state/PomodoroProvider';
@@ -18,13 +19,15 @@ export default function App() {
   }
 
   return (
-    <SettingsProvider>
-      <TasksProvider>
-        <PomodoroProvider>
-          <AppContent />
-        </PomodoroProvider>
-      </TasksProvider>
-    </SettingsProvider>
+    <SafeAreaProvider>
+      <SettingsProvider>
+        <TasksProvider>
+          <PomodoroProvider>
+            <AppContent />
+          </PomodoroProvider>
+        </TasksProvider>
+      </SettingsProvider>
+    </SafeAreaProvider>
   );
 }
 

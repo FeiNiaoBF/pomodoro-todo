@@ -1,13 +1,13 @@
 import React from 'react';
 import {
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CurrentTaskHeroCard } from '../components/CurrentTaskHeroCard';
 import { SegmentedProgressBar } from '../components/SegmentedProgressBar';
 import { TomatoDots } from '../components/TomatoDots';
@@ -32,7 +32,7 @@ export function TodayScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <View
         style={[styles.backgroundBloomTop, { backgroundColor: theme.colors.bloomTop }]}
         pointerEvents="none"
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     fontFamily: tokens.typography.bodyFamily,
   },
   settingsButton: {
-    minHeight: 34,
+    minHeight: 44,
     borderRadius: tokens.radius.pill,
     borderWidth: 1,
     borderColor: tokens.colors.outline,

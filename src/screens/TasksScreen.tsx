@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import {
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TomatoDots } from '../components/TomatoDots';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { useTasks } from '../hooks/useTasks';
@@ -63,7 +63,7 @@ export function TasksScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <View style={[styles.topBloom, { backgroundColor: theme.colors.bloomTop }]} pointerEvents="none" />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
@@ -375,12 +375,15 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   tabChip: {
+    minHeight: 44,
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: tokens.radius.pill,
     backgroundColor: tokens.colors.cardTranslucent,
     borderWidth: 1,
     borderColor: tokens.colors.outline,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabChipActive: {
     backgroundColor: tokens.colors.primarySoft,
@@ -473,12 +476,15 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   actionChip: {
+    minHeight: 44,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: tokens.radius.pill,
     backgroundColor: tokens.colors.primarySoft,
     borderWidth: 1,
     borderColor: tokens.colors.outline,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionChipPressed: {
     opacity: 0.9,
@@ -493,12 +499,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   actionChipQuiet: {
+    minHeight: 44,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: tokens.radius.pill,
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: tokens.colors.outline,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actionChipQuietText: {
     fontSize: 12,

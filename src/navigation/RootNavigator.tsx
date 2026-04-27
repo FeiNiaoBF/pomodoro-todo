@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList, RootTabParamList } from './types';
 import { createLocalStackNavigator } from './LocalStackNavigator';
 import { TodayScreen } from '../screens/TodayScreen';
@@ -63,6 +64,8 @@ function TabGlyph({
 
 function MainTabs() {
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, 10);
 
   return (
     <Tab.Navigator
@@ -73,6 +76,8 @@ function MainTabs() {
           {
             backgroundColor: theme.colors.surface,
             borderTopColor: theme.colors.outline,
+            height: 64 + bottomInset,
+            paddingBottom: bottomInset,
           },
         ],
         tabBarActiveTintColor: theme.colors.navActive,
@@ -126,9 +131,7 @@ export function RootNavigator() {
 const styles = StyleSheet.create({
   tabBar: {
     borderTopWidth: 1,
-    paddingBottom: 10,
     paddingTop: 10,
-    height: 74,
   },
   tabBarLabel: {
     fontSize: 12,
