@@ -1,9 +1,9 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList, RootTabParamList } from './types';
-import { createLocalStackNavigator } from './LocalStackNavigator';
 import { TodayScreen } from '../screens/TodayScreen';
 import { TasksScreen } from '../screens/TasksScreen';
 import { InsightsScreen } from '../screens/InsightsScreen';
@@ -14,7 +14,7 @@ import { useAppTheme } from '../hooks/useAppTheme';
 import { tokens } from '../theme/tokens';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
-const Stack = createLocalStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function TabGlyph({
   focused,
@@ -121,9 +121,29 @@ export function RootNavigator() {
       }}
     >
       <Stack.Screen name="MainTabs" component={MainTabs} />
-      <Stack.Screen name="Focus" component={FocusScreen} />
-      <Stack.Screen name="Break" component={BreakScreen} />
-      <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen
+        name="Focus"
+        component={FocusScreen}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name="Break"
+        component={BreakScreen}
+        options={{
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
+          animation: 'slide_from_right',
+        }}
+      />
     </Stack.Navigator>
   );
 }

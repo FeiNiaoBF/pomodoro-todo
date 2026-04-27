@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -28,6 +28,17 @@ export function BreakScreen() {
   } = usePomodoro();
 
   const [hasCompletedBreak, setHasCompletedBreak] = useState(false);
+  const allowExitRef = useRef(false);
+
+  useEffect(() => {
+    return navigation.addListener('beforeRemove', event => {
+      if (allowExitRef.current) {
+        return;
+      }
+
+      event.preventDefault();
+    });
+  }, [navigation]);
 
   useEffect(() => {
     if (currentMode !== 'short_break' || status !== 'running' || remainingSeconds !== 0 || hasCompletedBreak) {
@@ -57,6 +68,7 @@ export function BreakScreen() {
   };
 
   const handleSkipBreak = () => {
+    allowExitRef.current = true;
     completeBreak();
     navigation.navigate('MainTabs', { screen: 'Today' });
   };

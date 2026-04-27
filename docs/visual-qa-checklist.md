@@ -45,6 +45,9 @@ Use this checklist on a real device or simulator before adding more product beha
 
 ## Today Screen
 
+- Confirm the screen never appears blank while app data is loading.
+- With a slow/cold launch, confirm the loading state says "Preparing your focus rhythm...".
+- With an empty stored task list, confirm the empty state says "Your day is a blank slate." and the Add a task action opens Tasks.
 - Confirm the Settings entry is tappable and visually aligned in the header.
 - Confirm the progress card, current task card, Start Tomato button, and Up Next cards use the active theme.
 - Tap Start Tomato and verify the app enters Focus without layout shift.
@@ -57,12 +60,16 @@ Use this checklist on a real device or simulator before adding more product beha
 - Verify Pause / Resume, Interrupted, Save for later, and Complete session controls are at least 44px tall.
 - Confirm the breathing background remains soft and does not obscure the timer.
 - Pause and resume once to confirm visual state remains stable.
+- Confirm accidental swipe-back is disabled and Save for later remains the safe exit path.
+- On Android, confirm hardware back does not leave an active Focus session; use Save for later instead.
 
 ## Break Screen
 
 - Confirm the break timer uses Fraunces and accent color.
 - Confirm the break bloom, next-task preview card, Start Next Tomato button, and Skip Break action use the active theme.
 - Let or force a break complete and confirm the screen state remains readable.
+- Confirm accidental swipe-back is disabled and Skip Break remains the safe exit path.
+- On Android, confirm hardware back does not leave Break; use Skip Break instead.
 
 ## Tasks Screen
 
@@ -80,6 +87,8 @@ Use this checklist on a real device or simulator before adding more product beha
 ## Settings Screen
 
 - Confirm the Back button is at least 44px tall.
+- On iOS, open Settings from Today and confirm swipe-back dismisses Settings.
+- On Android, open Settings and confirm the hardware back button dismisses Settings.
 - Check all duration steppers in light and dark themes.
 - Confirm plus/minus buttons, disabled buttons, stepper values, and units have enough contrast.
 - Select System, Light, and Dark and confirm selected state is readable.

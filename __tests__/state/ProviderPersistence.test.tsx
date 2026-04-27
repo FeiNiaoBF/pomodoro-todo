@@ -77,6 +77,18 @@ describe('provider persistence', () => {
     );
   });
 
+  it('TasksProvider handles a stored empty task list without crashing', async () => {
+    await AsyncStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify([]));
+
+    const { result } = renderHook(() => useTasks(), { wrapper: TasksWrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
+
+    expect(result.current.tasks).toEqual([]);
+    expect(result.current.todayTasks).toEqual([]);
+    expect(result.current.currentTask).toBeNull();
+  });
+
   it('adding a task persists tasks after hydration', async () => {
     const { result } = renderHook(() => useTasks(), { wrapper: TasksWrapper });
 

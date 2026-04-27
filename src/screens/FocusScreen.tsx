@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -43,6 +43,17 @@ export function FocusScreen() {
   const [interruptionVisible, setInterruptionVisible] = useState(false);
   const [selectedInterruption, setSelectedInterruption] = useState<InterruptionReason | null>(null);
   const [hasCompleted, setHasCompleted] = useState(false);
+  const allowExitRef = useRef(false);
+
+  useEffect(() => {
+    return navigation.addListener('beforeRemove', event => {
+      if (allowExitRef.current) {
+        return;
+      }
+
+      event.preventDefault();
+    });
+  }, [navigation]);
 
   useEffect(() => {
     if (currentMode !== 'focus' || status !== 'running' || remainingSeconds !== 0 || hasCompleted) {
@@ -50,6 +61,7 @@ export function FocusScreen() {
     }
 
     setHasCompleted(true);
+    allowExitRef.current = true;
     completeFocus();
     navigation.navigate('Break');
   }, [completeFocus, currentMode, hasCompleted, navigation, remainingSeconds, status]);
@@ -70,6 +82,7 @@ export function FocusScreen() {
   const pauseLabel = status === 'running' ? 'Pause' : 'Resume';
 
   const handleSaveForLater = () => {
+    allowExitRef.current = true;
     saveForLater();
     navigation.navigate('MainTabs', { screen: 'Today' });
   };
@@ -80,6 +93,7 @@ export function FocusScreen() {
     }
 
     setHasCompleted(true);
+    allowExitRef.current = true;
     completeFocus();
     navigation.navigate('Break');
   };

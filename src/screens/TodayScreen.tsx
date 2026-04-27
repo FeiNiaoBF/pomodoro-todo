@@ -21,15 +21,22 @@ export function TodayScreen() {
   const theme = useAppTheme();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { completedSessions, dailyGoal, startTomato } = usePomodoro();
-  const { currentTask, upNextTasks, setCurrentTask } = useTasks();
+  const {
+    currentTask,
+    todayTasks,
+    upNextTasks,
+    isHydrated,
+    setCurrentTask,
+  } = useTasks();
 
   const completedToday = completedSessions.filter(
     session => session.mode === 'focus' && session.status === 'completed'
   ).length;
 
-  if (!currentTask) {
-    return null;
-  }
+  const focusTask = currentTask ?? todayTasks[0] ?? null;
+  const displayedUpNextTasks = focusTask
+    ? upNextTasks.filter(task => task.id !== focusTask.id)
+    : upNextTasks;
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -84,32 +91,74 @@ export function TodayScreen() {
           <SegmentedProgressBar total={dailyGoal} completed={Math.min(completedToday, dailyGoal)} />
         </View>
 
-        <CurrentTaskHeroCard
-          label="Current Tomato"
-          title={currentTask.title}
-          description={currentTask.description ?? ''}
-          completedTomatoes={currentTask.completedTomatoes}
-          totalTomatoes={currentTask.estimatedTomatoes}
-        />
+        {!isHydrated ? (
+          <View
+            style={[
+              styles.stateCard,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.outline,
+              },
+            ]}
+          >
+            <Text style={[styles.stateTitle, { color: theme.colors.text }]}>Preparing your focus rhythm...</Text>
+            <Text style={[styles.stateCopy, { color: theme.colors.muted }]}>Small steps count.</Text>
+          </View>
+        ) : focusTask ? (
+          <>
+            <CurrentTaskHeroCard
+              label="Current Tomato"
+              title={focusTask.title}
+              description={focusTask.description ?? ''}
+              completedTomatoes={focusTask.completedTomatoes}
+              totalTomatoes={focusTask.estimatedTomatoes}
+            />
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityHint="Starts one pomodoro for the current task"
-          accessibilityLabel="Start Tomato"
-          onPress={() => {
-            setCurrentTask(currentTask.id);
-            startTomato(currentTask);
-            navigation.navigate('Focus');
-          }}
-          style={({ pressed }) => [
-            styles.primaryButton,
-            { backgroundColor: theme.colors.primary },
-            pressed && styles.primaryButtonPressed,
-          ]}
-        >
-          <View style={[styles.primaryButtonIndicator, { backgroundColor: theme.colors.onPrimary }]} />
-          <Text style={[styles.primaryButtonText, { color: theme.colors.onPrimary }]}>Start Tomato</Text>
-        </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityHint="Starts one pomodoro for the current task"
+              accessibilityLabel="Start Tomato"
+              onPress={() => {
+                setCurrentTask(focusTask.id);
+                startTomato(focusTask);
+                navigation.navigate('Focus');
+              }}
+              style={({ pressed }) => [
+                styles.primaryButton,
+                { backgroundColor: theme.colors.primary },
+                pressed && styles.primaryButtonPressed,
+              ]}
+            >
+              <View style={[styles.primaryButtonIndicator, { backgroundColor: theme.colors.onPrimary }]} />
+              <Text style={[styles.primaryButtonText, { color: theme.colors.onPrimary }]}>Start Tomato</Text>
+            </Pressable>
+          </>
+        ) : (
+          <View
+            style={[
+              styles.stateCard,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.outline,
+              },
+            ]}
+          >
+            <Text style={[styles.stateTitle, { color: theme.colors.text }]}>Your day is a blank slate.</Text>
+            <Text style={[styles.stateCopy, { color: theme.colors.muted }]}>Add one small task to begin.</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Add a task"
+              onPress={() => navigation.navigate('MainTabs', { screen: 'Tasks' })}
+              style={({ pressed }) => [
+                styles.emptyAction,
+                { backgroundColor: theme.colors.primary },
+                pressed && styles.primaryButtonPressed,
+              ]}
+            >
+              <Text style={[styles.emptyActionText, { color: theme.colors.onPrimary }]}>Add a task</Text>
+            </Pressable>
+          </View>
+        )}
 
         <View style={styles.upNextSection}>
           <View style={styles.sectionHeader}>
@@ -118,7 +167,7 @@ export function TodayScreen() {
           </View>
 
           <View style={styles.queue}>
-            {upNextTasks.map((task, index) => (
+            {displayedUpNextTasks.map((task, index) => (
               <View
                 key={task.id}
                 style={[
@@ -248,6 +297,44 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     color: tokens.colors.text,
     fontFamily: tokens.typography.headingFamily,
+    fontWeight: '700',
+  },
+  stateCard: {
+    borderRadius: tokens.radius.hero,
+    padding: tokens.spacing.md,
+    borderWidth: 1,
+    backgroundColor: tokens.colors.surface,
+    borderColor: tokens.colors.outline,
+    gap: 12,
+    ...tokens.shadow,
+  },
+  stateTitle: {
+    fontSize: 26,
+    lineHeight: 32,
+    color: tokens.colors.text,
+    fontFamily: tokens.typography.headingFamily,
+    fontWeight: '700',
+  },
+  stateCopy: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: tokens.colors.muted,
+    fontFamily: tokens.typography.bodyFamily,
+  },
+  emptyAction: {
+    minHeight: 52,
+    borderRadius: tokens.radius.pill,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: tokens.colors.primary,
+    marginTop: 6,
+  },
+  emptyActionText: {
+    fontSize: tokens.typography.button,
+    color: tokens.colors.onPrimary,
+    fontFamily: tokens.typography.bodyFamily,
     fontWeight: '700',
   },
   primaryButton: {
