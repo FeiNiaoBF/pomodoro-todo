@@ -22,6 +22,12 @@ import { activeTimerStorage } from '../storage/activeTimerStorage';
 import { runStorageMigrations } from '../storage/migrations';
 import { pomodoroStorage } from '../storage/pomodoroStorage';
 import { ActiveTimerSnapshot } from '../types/activeTimer';
+import {
+  createActiveTimerSnapshot,
+  finalizeSession,
+  getRecoveredRemainingSeconds,
+  recoverActiveTimerSnapshot,
+} from './pomodoroRecovery';
 
 const FOCUS_DURATION_SECONDS = 25 * 60;
 const SHORT_BREAK_DURATION_SECONDS = 5 * 60;
@@ -41,10 +47,6 @@ interface PomodoroContextValue extends PomodoroStateSnapshot {
 
 const PomodoroContext = createContext<PomodoroContextValue | null>(null);
 
-function getRemainingSecondsFromExpectedEnd(expectedEndAt: number, now = Date.now()) {
-  return Math.max(0, Math.ceil((expectedEndAt - now) / 1000));
-}
-
 function createSession(
   taskId: string,
   mode: 'focus' | 'short_break' | 'long_break',
@@ -59,68 +61,6 @@ function createSession(
     actualDuration: 0,
     status: 'running',
     startedAt,
-  };
-}
-
-function finalizeSession(
-  session: PomodoroSession,
-  status: PomodoroSession['status'],
-  remainingSeconds: number
-): PomodoroSession {
-  return {
-    ...session,
-    status,
-    actualDuration: Math.max(0, session.plannedDuration - remainingSeconds),
-    endedAt: Date.now(),
-  };
-}
-
-function createActiveTimerSnapshot(
-  session: PomodoroSession,
-  status: ActiveTimerSnapshot['status'],
-  remainingSeconds: number,
-  focusSessionIndex: number,
-  now = Date.now()
-): ActiveTimerSnapshot {
-  return {
-    sessionId: session.id,
-    taskId: session.taskId,
-    mode: session.mode,
-    status,
-    plannedDuration: session.plannedDuration,
-    remainingSeconds,
-    startedAt: session.startedAt,
-    expectedEndAt: status === 'running' ? now + remainingSeconds * 1000 : undefined,
-    pausedAt: status === 'paused' || status === 'interrupted' ? now : undefined,
-    focusSessionIndex,
-  };
-}
-
-function createSessionFromSnapshot(snapshot: ActiveTimerSnapshot): PomodoroSession {
-  return {
-    id: snapshot.sessionId,
-    taskId: snapshot.taskId ?? 'recovered-session',
-    mode: snapshot.mode,
-    plannedDuration: snapshot.plannedDuration,
-    actualDuration: Math.max(0, snapshot.plannedDuration - snapshot.remainingSeconds),
-    status: snapshot.status,
-    startedAt: snapshot.startedAt,
-  };
-}
-
-function finalizeSnapshot(
-  snapshot: ActiveTimerSnapshot,
-  endedAt = Date.now()
-): PomodoroSession {
-  return {
-    id: snapshot.sessionId,
-    taskId: snapshot.taskId ?? 'recovered-session',
-    mode: snapshot.mode,
-    plannedDuration: snapshot.plannedDuration,
-    actualDuration: snapshot.plannedDuration,
-    status: 'completed',
-    startedAt: snapshot.startedAt,
-    endedAt,
   };
 }
 
@@ -168,7 +108,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     const snapshot = activeTimerSnapshotRef.current;
 
     if (snapshot?.status === 'running' && snapshot.expectedEndAt) {
-      return getRemainingSecondsFromExpectedEnd(snapshot.expectedEndAt);
+      return getRecoveredRemainingSeconds(snapshot.expectedEndAt);
     }
 
     return remainingSeconds;
@@ -205,92 +145,86 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
         }
 
         if (storedActiveTimer) {
-          const alreadyCompleted = nextCompletedSessions.some(
-            session => session.id === storedActiveTimer.sessionId
-          );
-
           setFocusSessionIndex(storedActiveTimer.focusSessionIndex);
 
           if (storedActiveTimer.taskId) {
             setCurrentTask(storedActiveTimer.taskId);
           }
 
-          if (storedActiveTimer.status === 'running' && storedActiveTimer.expectedEndAt) {
-            const recoveredRemainingSeconds = getRemainingSecondsFromExpectedEnd(
-              storedActiveTimer.expectedEndAt
+          const recovery = recoverActiveTimerSnapshot(
+            storedActiveTimer,
+            nextCompletedSessions
+          );
+
+          if (recovery.kind === 'running') {
+            activeTimerSnapshotRef.current = recovery.snapshot;
+            setActiveSession(recovery.session);
+            setCurrentMode(recovery.snapshot.mode);
+            setStatus('running');
+            setRemainingSeconds(recovery.remainingSeconds);
+          }
+
+          if (recovery.kind === 'paused') {
+            activeTimerSnapshotRef.current = recovery.snapshot;
+            setActiveSession(recovery.session);
+            setCurrentMode(recovery.snapshot.mode);
+            setStatus(recovery.snapshot.status);
+            setRemainingSeconds(recovery.snapshot.remainingSeconds);
+          }
+
+          if (recovery.kind === 'expired_focus') {
+            if (!recovery.alreadyCompleted) {
+              nextCompletedSessions = [
+                ...nextCompletedSessions,
+                recovery.completedSession,
+              ];
+              setCompletedSessions(nextCompletedSessions);
+              if (storedActiveTimer.taskId) {
+                incrementCompletedTomatoes(storedActiveTimer.taskId);
+              }
+              pomodoroStorage.saveCompletedSessions(nextCompletedSessions);
+            }
+
+            const breakStartedAt = Date.now();
+            const breakSession = createSession(
+              storedActiveTimer.taskId ?? 'break-session',
+              'short_break',
+              SHORT_BREAK_DURATION_SECONDS,
+              breakStartedAt
+            );
+            const breakSnapshot = createActiveTimerSnapshot(
+              breakSession,
+              'running',
+              SHORT_BREAK_DURATION_SECONDS,
+              storedActiveTimer.focusSessionIndex,
+              breakStartedAt
             );
 
-            if (recoveredRemainingSeconds > 0) {
-              const recoveredSnapshot = {
-                ...storedActiveTimer,
-                remainingSeconds: recoveredRemainingSeconds,
-              };
+            setActiveSession(breakSession);
+            setCurrentMode('short_break');
+            setStatus('running');
+            setRemainingSeconds(SHORT_BREAK_DURATION_SECONDS);
+            persistActiveTimer(breakSnapshot);
+          }
 
-              activeTimerSnapshotRef.current = recoveredSnapshot;
-              setActiveSession(createSessionFromSnapshot(recoveredSnapshot));
-              setCurrentMode(recoveredSnapshot.mode);
-              setStatus('running');
-              setRemainingSeconds(recoveredRemainingSeconds);
-            } else {
-              const completedSession = finalizeSnapshot(
-                storedActiveTimer,
-                storedActiveTimer.expectedEndAt
-              );
-
-              if (storedActiveTimer.mode === 'focus') {
-                if (!alreadyCompleted) {
-                  nextCompletedSessions = [...nextCompletedSessions, completedSession];
-                  setCompletedSessions(nextCompletedSessions);
-                  if (storedActiveTimer.taskId) {
-                    incrementCompletedTomatoes(storedActiveTimer.taskId);
-                  }
-                  pomodoroStorage.saveCompletedSessions(nextCompletedSessions);
-                }
-
-                const breakStartedAt = Date.now();
-                const breakSession = createSession(
-                  storedActiveTimer.taskId ?? 'break-session',
-                  'short_break',
-                  SHORT_BREAK_DURATION_SECONDS,
-                  breakStartedAt
-                );
-                const breakSnapshot = createActiveTimerSnapshot(
-                  breakSession,
-                  'running',
-                  SHORT_BREAK_DURATION_SECONDS,
-                  storedActiveTimer.focusSessionIndex,
-                  breakStartedAt
-                );
-
-                setActiveSession(breakSession);
-                setCurrentMode('short_break');
-                setStatus('running');
-                setRemainingSeconds(SHORT_BREAK_DURATION_SECONDS);
-                persistActiveTimer(breakSnapshot);
-              } else {
-                if (!alreadyCompleted) {
-                  nextCompletedSessions = [...nextCompletedSessions, completedSession];
-                  setCompletedSessions(nextCompletedSessions);
-                  pomodoroStorage.saveCompletedSessions(nextCompletedSessions);
-                }
-
-                setActiveSession(completedSession);
-                setCurrentMode(storedActiveTimer.mode);
-                setStatus('completed');
-                setRemainingSeconds(0);
-                clearActiveTimer();
-              }
+          if (recovery.kind === 'expired_break') {
+            if (!recovery.alreadyCompleted) {
+              nextCompletedSessions = [
+                ...nextCompletedSessions,
+                recovery.completedSession,
+              ];
+              setCompletedSessions(nextCompletedSessions);
+              pomodoroStorage.saveCompletedSessions(nextCompletedSessions);
             }
-          } else if (
-            storedActiveTimer.status === 'paused' ||
-            storedActiveTimer.status === 'interrupted'
-          ) {
-            activeTimerSnapshotRef.current = storedActiveTimer;
-            setActiveSession(createSessionFromSnapshot(storedActiveTimer));
+
+            setActiveSession(recovery.completedSession);
             setCurrentMode(storedActiveTimer.mode);
-            setStatus(storedActiveTimer.status);
-            setRemainingSeconds(storedActiveTimer.remainingSeconds);
-          } else {
+            setStatus('completed');
+            setRemainingSeconds(0);
+            clearActiveTimer();
+          }
+
+          if (recovery.kind === 'clear') {
             clearActiveTimer();
           }
         }
@@ -358,7 +292,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
       const snapshot = activeTimerSnapshotRef.current;
 
       if (snapshot?.status === 'running' && snapshot.expectedEndAt) {
-        setRemainingSeconds(getRemainingSecondsFromExpectedEnd(snapshot.expectedEndAt));
+        setRemainingSeconds(getRecoveredRemainingSeconds(snapshot.expectedEndAt));
         return;
       }
 
