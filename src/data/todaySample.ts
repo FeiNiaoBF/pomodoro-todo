@@ -1,5 +1,5 @@
-import { PomodoroSession } from '../types/pomodoro';
 import { Task } from '../types/task';
+import { PomodoroSession } from '../types/pomodoro';
 
 const now = Date.now();
 
@@ -34,6 +34,47 @@ export const upNextTasks: Task[] = [
     createdAt: now - 1000 * 60 * 45,
     updatedAt: now - 1000 * 60 * 18,
   },
+];
+
+export const backlogTasks: Task[] = [
+  {
+    id: 'task-retro',
+    title: 'Outline team retro notes',
+    estimatedTomatoes: 1,
+    completedTomatoes: 0,
+    state: 'backlog',
+    createdAt: now - 1000 * 60 * 90,
+    updatedAt: now - 1000 * 60 * 40,
+  },
+  {
+    id: 'task-roadmap',
+    title: 'Plan onboarding roadmap draft',
+    estimatedTomatoes: 2,
+    completedTomatoes: 0,
+    state: 'backlog',
+    createdAt: now - 1000 * 60 * 110,
+    updatedAt: now - 1000 * 60 * 42,
+  },
+];
+
+export const completedTasks: Task[] = [
+  {
+    id: 'task-review',
+    title: 'Review homepage copy edits',
+    estimatedTomatoes: 1,
+    completedTomatoes: 1,
+    state: 'completed',
+    createdAt: now - 1000 * 60 * 240,
+    updatedAt: now - 1000 * 60 * 120,
+    completedAt: now - 1000 * 60 * 120,
+  },
+];
+
+export const initialTasks: Task[] = [
+  currentFocusTask,
+  ...upNextTasks,
+  ...backlogTasks,
+  ...completedTasks,
 ];
 
 export const sampleCompletedSessions: PomodoroSession[] = [

@@ -15,11 +15,8 @@ import {
   PomodoroStatus,
 } from '../types/pomodoro';
 import { Task } from '../types/task';
-import {
-  currentFocusTask,
-  sampleCompletedSessions,
-  upNextTasks as seededUpNextTasks,
-} from '../data/todaySample';
+import { currentFocusTask, sampleCompletedSessions } from '../data/todaySample';
+import { useTasks } from '../hooks/useTasks';
 
 const FOCUS_DURATION_SECONDS = 25 * 60;
 const SHORT_BREAK_DURATION_SECONDS = 5 * 60;
@@ -65,7 +62,14 @@ function finalizeSession(
 }
 
 export function PomodoroProvider({ children }: { children: ReactNode }) {
-  const [currentTask, setCurrentTask] = useState<Task | null>(currentFocusTask);
+  const {
+    currentTask,
+    upNextTasks,
+    nextTaskPreview,
+    setCurrentTask,
+    incrementCompletedTomatoes,
+    updateTask,
+  } = useTasks();
   const [activeSession, setActiveSession] = useState<PomodoroSession | null>(null);
   const [currentMode, setCurrentMode] = useState<PomodoroStateSnapshot['currentMode']>('idle');
   const [status, setStatus] = useState<PomodoroStatus>('idle');
@@ -73,7 +77,6 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   const [completedSessions, setCompletedSessions] = useState<PomodoroSession[]>(sampleCompletedSessions);
   const [interruptions, setInterruptions] = useState<Interruption[]>([]);
   const [focusSessionIndex, setFocusSessionIndex] = useState(2);
-  const [upNextTasks, setUpNextTasks] = useState<Task[]>(seededUpNextTasks);
 
   useEffect(() => {
     if (status !== 'running') {
@@ -91,21 +94,13 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [currentMode, status]);
 
-  const nextTaskPreview = upNextTasks[0] ?? null;
-
   const startTomato = useCallback((task: Task) => {
-    const nextTask: Task = {
-      ...task,
-      state: 'active',
-      updatedAt: Date.now(),
-    };
-
-    setCurrentTask(nextTask);
-    setActiveSession(createSession(nextTask.id, 'focus', FOCUS_DURATION_SECONDS));
+    setCurrentTask(task.id);
+    setActiveSession(createSession(task.id, 'focus', FOCUS_DURATION_SECONDS));
     setCurrentMode('focus');
     setRemainingSeconds(FOCUS_DURATION_SECONDS);
     setStatus('running');
-  }, []);
+  }, [setCurrentTask]);
 
   const pause = useCallback(() => {
     if (status !== 'running') {
@@ -143,26 +138,20 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     }
 
     const completedSession = finalizeSession(activeSession, 'completed', remainingSeconds);
-    const completedTomatoes = currentTask.completedTomatoes + 1;
-    const updatedTask: Task = {
-      ...currentTask,
-      completedTomatoes,
-      updatedAt: Date.now(),
-      state:
-        completedTomatoes >= currentTask.estimatedTomatoes ? 'completed' : 'active',
-      completedAt:
-        completedTomatoes >= currentTask.estimatedTomatoes ? Date.now() : undefined,
-    };
 
     setCompletedSessions(prev => [...prev, completedSession]);
-    setCurrentTask(updatedTask);
+    incrementCompletedTomatoes(currentTask.id);
     setActiveSession(null);
     setStatus('completed');
     startBreak();
-  }, [activeSession, currentMode, currentTask, remainingSeconds, startBreak]);
+  }, [activeSession, currentMode, currentTask, incrementCompletedTomatoes, remainingSeconds, startBreak]);
 
   const completeBreak = useCallback(() => {
-    if (!activeSession || (currentMode !== 'short_break' && currentMode !== 'long_break')) {
+    if (
+      !activeSession ||
+      status === 'completed' ||
+      (currentMode !== 'short_break' && currentMode !== 'long_break')
+    ) {
       return;
     }
 
@@ -171,7 +160,7 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     setCompletedSessions(prev => [...prev, completedSession]);
     setActiveSession(completedSession);
     setStatus('completed');
-  }, [activeSession, currentMode, remainingSeconds]);
+  }, [activeSession, currentMode, remainingSeconds, status]);
 
   const startNextTomato = useCallback(() => {
     const shouldSwitchTask =
@@ -182,10 +171,6 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
 
     if (!taskToStart) {
       return;
-    }
-
-    if (shouldSwitchTask && nextTaskPreview) {
-      setUpNextTasks(prev => prev.slice(1));
     }
 
     setFocusSessionIndex(prev => prev + 1);
@@ -201,16 +186,10 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     setCurrentMode('idle');
     setStatus('saved_for_later');
     setRemainingSeconds(FOCUS_DURATION_SECONDS);
-    setCurrentTask(prev =>
-      prev
-        ? {
-            ...prev,
-            state: 'paused',
-            updatedAt: Date.now(),
-          }
-        : prev
-    );
-  }, [activeSession, remainingSeconds]);
+    if (currentTask) {
+      updateTask(currentTask.id, { state: 'paused' });
+    }
+  }, [activeSession, currentTask, remainingSeconds, updateTask]);
 
   const logInterruption = useCallback((reason: InterruptionReason) => {
     if (!activeSession) {
@@ -272,6 +251,9 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     startTomato,
     status,
     upNextTasks,
+    setCurrentTask,
+    incrementCompletedTomatoes,
+    updateTask,
   ]);
 
   return (

@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { PomodoroProvider } from './src/state/PomodoroProvider';
+import { TasksProvider } from './src/state/TasksProvider';
 import { initializeStorage } from './src/utils/StorageService';
 
 export default function App() {
@@ -32,12 +33,14 @@ export default function App() {
   }
 
   return (
-    <PomodoroProvider>
-      <NavigationContainer>
-        <RootNavigator />
-        <StatusBar style="dark" />
-      </NavigationContainer>
-    </PomodoroProvider>
+    <TasksProvider>
+      <PomodoroProvider>
+        <NavigationContainer>
+          <RootNavigator />
+          <StatusBar style="dark" />
+        </NavigationContainer>
+      </PomodoroProvider>
+    </TasksProvider>
   );
 }
 

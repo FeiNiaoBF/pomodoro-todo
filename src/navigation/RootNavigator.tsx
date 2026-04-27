@@ -4,7 +4,7 @@ import { View, StyleSheet } from 'react-native';
 import { RootStackParamList, RootTabParamList } from './types';
 import { createLocalStackNavigator } from './LocalStackNavigator';
 import { TodayScreen } from '../screens/TodayScreen';
-import { TodoScreen } from '../screens/TodoScreen';
+import { TasksScreen } from '../screens/TasksScreen';
 import { StatsScreen } from '../screens/StatsScreen';
 import { FocusScreen } from '../screens/FocusScreen';
 import { BreakScreen } from '../screens/BreakScreen';
@@ -79,7 +79,7 @@ function MainTabs() {
       />
       <Tab.Screen
         name="Tasks"
-        component={TodoScreen}
+        component={TasksScreen}
         options={{
           tabBarLabel: 'Tasks',
           tabBarIcon: ({ focused }) => <TabGlyph focused={focused} variant="tasks" />,

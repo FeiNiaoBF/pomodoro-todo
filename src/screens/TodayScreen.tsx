@@ -12,12 +12,14 @@ import { CurrentTaskHeroCard } from '../components/CurrentTaskHeroCard';
 import { SegmentedProgressBar } from '../components/SegmentedProgressBar';
 import { TomatoDots } from '../components/TomatoDots';
 import { usePomodoro } from '../hooks/usePomodoro';
+import { useTasks } from '../hooks/useTasks';
 import { RootStackParamList } from '../navigation/types';
 import { tokens } from '../theme/tokens';
 
 export function TodayScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { currentTask, upNextTasks, completedSessions, dailyGoal, startTomato } = usePomodoro();
+  const { completedSessions, dailyGoal, startTomato } = usePomodoro();
+  const { currentTask, upNextTasks, setCurrentTask } = useTasks();
 
   const completedToday = completedSessions.filter(
     session => session.mode === 'focus' && session.status === 'completed'
@@ -62,6 +64,7 @@ export function TodayScreen() {
           accessibilityHint="Starts one pomodoro for the current task"
           accessibilityLabel="Start Tomato"
           onPress={() => {
+            setCurrentTask(currentTask.id);
             startTomato(currentTask);
             navigation.navigate('Focus');
           }}
