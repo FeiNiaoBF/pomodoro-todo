@@ -209,6 +209,7 @@ export function InsightsScreen() {
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   const theme = useAppTheme();
+  const isLongValue = value.length > 6;
 
   return (
     <View
@@ -220,7 +221,9 @@ function MetricCard({ label, value }: { label: string; value: string }) {
         },
       ]}
     >
-      <Text style={[styles.metricValue, { color: theme.colors.text }]}>{value}</Text>
+      <Text style={[styles.metricValue, isLongValue && styles.metricValueCompact, { color: theme.colors.text }]}>
+        {value}
+      </Text>
       <Text style={[styles.metricLabel, { color: theme.colors.muted }]}>{label}</Text>
     </View>
   );
@@ -254,7 +257,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingTop: 18,
-    paddingBottom: 36,
+    paddingBottom: 132,
     gap: 18,
   },
   header: {
@@ -325,6 +328,10 @@ const styles = StyleSheet.create({
     color: tokens.colors.text,
     fontFamily: tokens.typography.headingFamily,
     fontWeight: '700',
+  },
+  metricValueCompact: {
+    fontSize: 24,
+    lineHeight: 30,
   },
   metricLabel: {
     fontSize: 13,

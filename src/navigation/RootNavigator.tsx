@@ -65,7 +65,7 @@ function TabGlyph({
 function MainTabs() {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
-  const bottomInset = Math.max(insets.bottom, 10);
+  const bottomInset = Math.max(insets.bottom, 12);
 
   return (
     <Tab.Navigator
@@ -76,13 +76,15 @@ function MainTabs() {
           {
             backgroundColor: theme.colors.surface,
             borderTopColor: theme.colors.outline,
-            height: 64 + bottomInset,
-            paddingBottom: bottomInset,
+            height: 78 + bottomInset,
+            paddingBottom: bottomInset + 8,
           },
         ],
         tabBarActiveTintColor: theme.colors.navActive,
         tabBarInactiveTintColor: theme.colors.navInactive,
         tabBarLabelStyle: styles.tabBarLabel,
+        tabBarItemStyle: styles.tabBarItem,
+        tabBarIconStyle: styles.tabBarIcon,
       }}
     >
       <Tab.Screen
@@ -151,11 +153,20 @@ export function RootNavigator() {
 const styles = StyleSheet.create({
   tabBar: {
     borderTopWidth: 1,
-    paddingTop: 10,
+    paddingTop: 8,
+  },
+  tabBarItem: {
+    minHeight: 58,
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
+  tabBarIcon: {
+    marginTop: 2,
   },
   tabBarLabel: {
     fontSize: 12,
-    marginTop: 6,
+    lineHeight: 16,
+    marginTop: 3,
     fontFamily: tokens.typography.bodyFamily,
     fontWeight: '600',
   },

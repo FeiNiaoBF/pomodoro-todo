@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingTop: 18,
-    paddingBottom: 36,
+    paddingBottom: 132,
     gap: 20,
   },
   backgroundBloomTop: {

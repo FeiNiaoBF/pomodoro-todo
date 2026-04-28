@@ -120,10 +120,11 @@ export function SettingsScreen() {
               value={settings.reducedMotion}
               onValueChange={value => updateSettings({ reducedMotion: value })}
               trackColor={{
-                false: theme.colors.outline,
+                false: theme.colors.surfaceSoft,
                 true: theme.colors.primarySoft,
               }}
-              thumbColor={settings.reducedMotion ? theme.colors.primary : theme.colors.surface}
+              thumbColor={settings.reducedMotion ? theme.colors.primary : theme.colors.muted}
+              ios_backgroundColor={theme.colors.surfaceSoft}
             />
           </View>
 
