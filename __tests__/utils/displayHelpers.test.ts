@@ -38,11 +38,17 @@ describe('tomato progress display helpers', () => {
       total: 8,
     });
   });
+
+  it('formats tomato progress in Chinese', () => {
+    expect(formatTomatoProgress(2, 3, 'zh-Hans')).toBe('2/3 个番茄');
+    expect(formatTomatoProgress(6, 1, 'zh-Hans')).toBe('6 已完成 · 预计 1');
+  });
 });
 
 describe('date display helpers', () => {
   it('derives morning greeting', () => {
     expect(getTimeOfDayGreeting(new Date(2026, 3, 27, 8))).toBe('Good morning');
+    expect(getTimeOfDayGreeting(new Date(2026, 3, 27, 8), 'zh-Hans')).toBe('早上好');
   });
 
   it('derives afternoon greeting', () => {
@@ -67,6 +73,7 @@ describe('task and development display helpers', () => {
     expect(getTaskStateLabel('active')).toBe('Current focus');
     expect(getTaskStateLabel('paused')).toBe('Saved for later');
     expect(getTaskStateLabel('completed')).toBe('Done');
+    expect(getTaskStateLabel('active', 'zh-Hans')).toBe('当前专注');
   });
 
   it('hides dev timer controls by default', () => {

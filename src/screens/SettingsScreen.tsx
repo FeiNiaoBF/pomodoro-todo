@@ -11,11 +11,13 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import {
+  OneTomatoLanguage,
   OneTomatoTheme,
   settingsLimits,
 } from '../storage/settingsStorage';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { useSettings } from '../hooks/useSettings';
+import { useTranslation } from '../hooks/useTranslation';
 import { tokens } from '../theme/tokens';
 
 type NumericSettingKey =
@@ -24,16 +26,23 @@ type NumericSettingKey =
   | 'longBreakDurationMinutes'
   | 'longBreakInterval';
 
-const THEME_OPTIONS: Array<{ label: string; value: OneTomatoTheme }> = [
-  { label: 'System', value: 'system' },
-  { label: 'Light', value: 'light' },
-  { label: 'Dark', value: 'dark' },
+const THEME_OPTIONS: Array<{ labelKey: 'settings.theme.system' | 'settings.theme.light' | 'settings.theme.dark'; value: OneTomatoTheme }> = [
+  { labelKey: 'settings.theme.system', value: 'system' },
+  { labelKey: 'settings.theme.light', value: 'light' },
+  { labelKey: 'settings.theme.dark', value: 'dark' },
+];
+
+const LANGUAGE_OPTIONS: Array<{ labelKey: 'settings.language.system' | 'settings.language.en' | 'settings.language.zhHans'; value: OneTomatoLanguage }> = [
+  { labelKey: 'settings.language.system', value: 'system' },
+  { labelKey: 'settings.language.en', value: 'en' },
+  { labelKey: 'settings.language.zhHans', value: 'zh-Hans' },
 ];
 
 export function SettingsScreen() {
   const theme = useAppTheme();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { settings, updateSettings, resetSettings } = useSettings();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -44,7 +53,7 @@ export function SettingsScreen() {
         <View style={styles.header}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Back"
+            accessibilityLabel={t('common.back')}
             onPress={() => navigation.goBack()}
             style={({ pressed }) => [
               styles.backButton,
@@ -55,10 +64,10 @@ export function SettingsScreen() {
               pressed && styles.quietPressed,
             ]}
           >
-            <Text style={[styles.backButtonText, { color: theme.colors.muted }]}>Back</Text>
+            <Text style={[styles.backButtonText, { color: theme.colors.muted }]}>{t('common.back')}</Text>
           </Pressable>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Settings</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.muted }]}>Shape your focus rhythm.</Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>{t('settings.title')}</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.muted }]}>{t('settings.subtitle')}</Text>
         </View>
 
         <View
@@ -70,32 +79,32 @@ export function SettingsScreen() {
             },
           ]}
         >
-          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Focus rhythm</Text>
+          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{t('settings.focusRhythm')}</Text>
           <SettingStepper
-            label="Focus duration"
+            label={t('settings.focusDuration')}
             value={settings.focusDurationMinutes}
-            unit="min"
+            unit={t('settings.unit.min')}
             settingKey="focusDurationMinutes"
             onChange={value => updateSettings({ focusDurationMinutes: value })}
           />
           <SettingStepper
-            label="Short break"
+            label={t('settings.shortBreak')}
             value={settings.shortBreakDurationMinutes}
-            unit="min"
+            unit={t('settings.unit.min')}
             settingKey="shortBreakDurationMinutes"
             onChange={value => updateSettings({ shortBreakDurationMinutes: value })}
           />
           <SettingStepper
-            label="Long break"
+            label={t('settings.longBreak')}
             value={settings.longBreakDurationMinutes}
-            unit="min"
+            unit={t('settings.unit.min')}
             settingKey="longBreakDurationMinutes"
             onChange={value => updateSettings({ longBreakDurationMinutes: value })}
           />
           <SettingStepper
-            label="Long break interval"
+            label={t('settings.longBreakInterval')}
             value={settings.longBreakInterval}
-            unit="tomatoes"
+            unit={t('settings.unit.tomatoes')}
             settingKey="longBreakInterval"
             onChange={value => updateSettings({ longBreakInterval: value })}
           />
@@ -110,11 +119,11 @@ export function SettingsScreen() {
             },
           ]}
         >
-          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Experience</Text>
+          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{t('settings.experience')}</Text>
           <View style={styles.settingRow}>
             <View style={styles.settingCopy}>
-              <Text style={[styles.settingLabel, { color: theme.colors.text }]}>Reduced motion</Text>
-              <Text style={[styles.settingHint, { color: theme.colors.muted }]}>Keep movement gentle and minimal.</Text>
+              <Text style={[styles.settingLabel, { color: theme.colors.text }]}>{t('settings.reducedMotion')}</Text>
+              <Text style={[styles.settingHint, { color: theme.colors.muted }]}>{t('settings.reducedMotionHint')}</Text>
             </View>
             <Switch
               value={settings.reducedMotion}
@@ -129,16 +138,17 @@ export function SettingsScreen() {
           </View>
 
           <View style={styles.themeSection}>
-            <Text style={[styles.settingLabel, { color: theme.colors.text }]}>Theme</Text>
+            <Text style={[styles.settingLabel, { color: theme.colors.text }]}>{t('settings.theme')}</Text>
             <View style={styles.themeOptions}>
               {THEME_OPTIONS.map(option => {
                 const isSelected = settings.theme === option.value;
+                const label = t(option.labelKey);
 
                 return (
                   <Pressable
                     key={option.value}
                     accessibilityRole="button"
-                    accessibilityLabel={`${option.label} theme`}
+                    accessibilityLabel={label}
                     onPress={() => updateSettings({ theme: option.value })}
                     style={({ pressed }) => [
                       styles.themeOption,
@@ -155,7 +165,46 @@ export function SettingsScreen() {
                         { color: isSelected ? theme.colors.primaryHover : theme.colors.muted },
                       ]}
                     >
-                      {option.label}
+                      {label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={styles.themeSection}>
+            <View style={styles.settingCopy}>
+              <Text style={[styles.settingLabel, { color: theme.colors.text }]}>{t('settings.language')}</Text>
+              <Text style={[styles.settingHint, { color: theme.colors.muted }]}>{t('settings.languageHint')}</Text>
+            </View>
+            <View style={styles.themeOptions}>
+              {LANGUAGE_OPTIONS.map(option => {
+                const isSelected = settings.language === option.value;
+                const label = t(option.labelKey);
+
+                return (
+                  <Pressable
+                    key={option.value}
+                    accessibilityRole="button"
+                    accessibilityLabel={label}
+                    onPress={() => updateSettings({ language: option.value })}
+                    style={({ pressed }) => [
+                      styles.themeOption,
+                      {
+                        backgroundColor: isSelected ? theme.colors.primarySoft : theme.colors.input,
+                        borderColor: isSelected ? theme.colors.primary : theme.colors.outline,
+                      },
+                      pressed && styles.quietPressed,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.themeOptionText,
+                        { color: isSelected ? theme.colors.primaryHover : theme.colors.muted },
+                      ]}
+                    >
+                      {label}
                     </Text>
                   </Pressable>
                 );
@@ -166,7 +215,7 @@ export function SettingsScreen() {
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Reset settings to defaults"
+          accessibilityLabel={t('settings.reset')}
           onPress={resetSettings}
           style={({ pressed }) => [
             styles.resetButton,
@@ -177,7 +226,7 @@ export function SettingsScreen() {
             pressed && styles.quietPressed,
           ]}
         >
-          <Text style={[styles.resetButtonText, { color: theme.colors.muted }]}>Reset to defaults</Text>
+          <Text style={[styles.resetButtonText, { color: theme.colors.muted }]}>{t('settings.reset')}</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -198,6 +247,7 @@ function SettingStepper({
   onChange: (value: number) => void;
 }) {
   const theme = useAppTheme();
+  const { t } = useTranslation();
   const limit = settingsLimits[settingKey];
 
   return (
@@ -219,7 +269,7 @@ function SettingStepper({
         ]}
       >
         <StepButton
-          label="Decrease"
+          label={t('settings.decrease')}
           disabled={value <= limit.min}
           onPress={() => onChange(value - 1)}
         >
@@ -230,7 +280,7 @@ function SettingStepper({
           <Text style={[styles.stepperUnit, { color: theme.colors.muted }]}>{unit}</Text>
         </View>
         <StepButton
-          label="Increase"
+          label={t('settings.increase')}
           disabled={value >= limit.max}
           onPress={() => onChange(value + 1)}
         >

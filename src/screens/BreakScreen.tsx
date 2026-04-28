@@ -10,11 +10,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BreathingBackground } from '../components/BreathingBackground';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { usePomodoro } from '../hooks/usePomodoro';
+import { useTranslation } from '../hooks/useTranslation';
 import { RootStackParamList } from '../navigation/types';
 import { tokens } from '../theme/tokens';
 
 export function BreakScreen() {
   const theme = useAppTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const {
@@ -88,8 +90,10 @@ export function BreakScreen() {
         ]}
       >
         <View style={styles.header}>
-          <Text style={[styles.breakLabel, { color: theme.colors.accent }]}>Short Break</Text>
-          <Text style={[styles.breakContext, { color: theme.colors.muted }]}>After focus session {focusSessionIndex}</Text>
+          <Text style={[styles.breakLabel, { color: theme.colors.accent }]}>{t('break.shortBreak')}</Text>
+          <Text style={[styles.breakContext, { color: theme.colors.muted }]}>
+            {t('break.afterSession', { current: focusSessionIndex })}
+          </Text>
         </View>
 
         <View style={styles.centerSection}>
@@ -103,8 +107,8 @@ export function BreakScreen() {
 
           <View style={styles.centerOverlay}>
             <Text style={[styles.timerText, { color: theme.colors.accent }]}>{displayTime}</Text>
-            <Text style={[styles.headline, { color: theme.colors.text }]}>Time to breathe.</Text>
-            <Text style={[styles.message, { color: theme.colors.muted }]}>Rest your eyes. You earned it.</Text>
+            <Text style={[styles.headline, { color: theme.colors.text }]}>{t('break.title')}</Text>
+            <Text style={[styles.message, { color: theme.colors.muted }]}>{t('break.subtitle')}</Text>
           </View>
         </View>
 
@@ -118,15 +122,15 @@ export function BreakScreen() {
               },
             ]}
           >
-            <Text style={[styles.previewLabel, { color: theme.colors.muted }]}>Next</Text>
+            <Text style={[styles.previewLabel, { color: theme.colors.muted }]}>{t('break.next')}</Text>
             <Text style={[styles.previewText, { color: theme.colors.text }]}>
-              {nextTaskPreview ? nextTaskPreview.title : 'Start another focus session'}
+              {nextTaskPreview ? nextTaskPreview.title : t('break.startAnother')}
             </Text>
           </View>
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Start Next Tomato"
+            accessibilityLabel={t('break.nextTomato')}
             onPress={handleStartNextTomato}
             style={({ pressed }) => [
               styles.primaryButton,
@@ -134,12 +138,12 @@ export function BreakScreen() {
               pressed && styles.primaryButtonPressed,
             ]}
           >
-            <Text style={[styles.primaryButtonText, { color: theme.colors.onAccent }]}>Start Next Tomato</Text>
+            <Text style={[styles.primaryButtonText, { color: theme.colors.onAccent }]}>{t('break.nextTomato')}</Text>
           </Pressable>
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Skip Break"
+            accessibilityLabel={t('break.doneForNow')}
             onPress={handleSkipBreak}
             style={({ pressed }) => [
               styles.secondaryButton,
@@ -147,7 +151,7 @@ export function BreakScreen() {
               pressed && styles.quietPressed,
             ]}
           >
-            <Text style={[styles.secondaryButtonText, { color: theme.colors.muted }]}>Skip Break</Text>
+            <Text style={[styles.secondaryButtonText, { color: theme.colors.muted }]}>{t('break.doneForNow')}</Text>
           </Pressable>
         </View>
       </View>

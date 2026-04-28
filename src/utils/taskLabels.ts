@@ -1,16 +1,17 @@
+import { TranslationKey, AppLanguage, translate } from '../i18n/translations';
 import { TaskState } from '../types/task';
 
-const TASK_STATE_LABELS: Record<TaskState, string> = {
-  active: 'Current focus',
-  paused: 'Saved for later',
-  today: 'Today',
-  backlog: 'Backlog',
-  completed: 'Done',
-  archived: 'Archived',
+const TASK_STATE_LABEL_KEYS: Record<TaskState, TranslationKey> = {
+  active: 'task.currentFocus',
+  paused: 'task.savedForLater',
+  today: 'task.today',
+  backlog: 'task.savedForLater',
+  completed: 'task.done',
+  archived: 'task.savedForLater',
 };
 
-export function getTaskStateLabel(state: TaskState) {
-  return TASK_STATE_LABELS[state];
+export function getTaskStateLabel(state: TaskState, language: AppLanguage = 'en') {
+  return translate(language, TASK_STATE_LABEL_KEYS[state]);
 }
 
 export function isShortTaskTitle(title: string) {

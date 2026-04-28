@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TomatoDots } from '../components/TomatoDots';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { useTasks } from '../hooks/useTasks';
+import { useTranslation } from '../hooks/useTranslation';
 import { tokens } from '../theme/tokens';
 import { Task } from '../types/task';
 import { getTaskStateLabel } from '../utils/taskLabels';
@@ -20,6 +21,7 @@ type TaskTab = 'today' | 'backlog' | 'completed';
 
 export function TasksScreen() {
   const theme = useAppTheme();
+  const { t } = useTranslation();
   const {
     currentTask,
     todayTasks,
@@ -70,8 +72,8 @@ export function TasksScreen() {
       <View style={[styles.topBloom, { backgroundColor: theme.colors.bloomTop }]} pointerEvents="none" />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Tasks</Text>
-          <Text style={[styles.headerSubtitle, { color: theme.colors.muted }]}>Plan lightly. Focus clearly.</Text>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>{t('tasks.title')}</Text>
+          <Text style={[styles.headerSubtitle, { color: theme.colors.muted }]}>{t('tasks.subtitle')}</Text>
         </View>
 
         <View
@@ -83,7 +85,7 @@ export function TasksScreen() {
             },
           ]}
         >
-          <Text style={[styles.inputLabel, { color: theme.colors.muted }]}>Quick add</Text>
+          <Text style={[styles.inputLabel, { color: theme.colors.muted }]}>{t('tasks.quickAdd')}</Text>
           <View style={styles.inputRow}>
             <TextInput
               style={[
@@ -96,14 +98,14 @@ export function TasksScreen() {
               ]}
               value={inputValue}
               onChangeText={setInputValue}
-              placeholder="What needs your focus?"
+              placeholder={t('tasks.quickAddPlaceholder')}
               placeholderTextColor={theme.colors.muted}
               returnKeyType="done"
               onSubmitEditing={handleAddTask}
             />
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Add task"
+              accessibilityLabel={t('tasks.add')}
               onPress={handleAddTask}
               style={({ pressed }) => [
                 styles.addButton,
@@ -111,7 +113,7 @@ export function TasksScreen() {
                 pressed && styles.quietPressed,
               ]}
             >
-              <Text style={[styles.addButtonText, { color: theme.colors.onPrimary }]}>Add</Text>
+              <Text style={[styles.addButtonText, { color: theme.colors.onPrimary }]}>{t('tasks.add')}</Text>
             </Pressable>
           </View>
         </View>
@@ -119,13 +121,17 @@ export function TasksScreen() {
         <View style={styles.tabsRow}>
           {(['today', 'backlog', 'completed'] as TaskTab[]).map(tab => {
             const isActive = tab === activeTab;
-            const label = tab[0].toUpperCase() + tab.slice(1);
+            const label = tab === 'today'
+              ? t('task.today')
+              : tab === 'backlog'
+                ? t('tasks.backlog')
+                : t('tasks.completed');
 
             return (
               <Pressable
                 key={tab}
                 accessibilityRole="button"
-                accessibilityLabel={`${label} tasks`}
+                accessibilityLabel={label}
                 onPress={() => setActiveTab(tab)}
                 style={[
                   styles.tabChip,
@@ -159,8 +165,8 @@ export function TasksScreen() {
                 },
               ]}
             >
-              <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>Nothing here yet.</Text>
-              <Text style={[styles.emptyText, { color: theme.colors.muted }]}>Add a small task and keep the plan light.</Text>
+              <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>{t('tasks.emptyTitle')}</Text>
+              <Text style={[styles.emptyText, { color: theme.colors.muted }]}>{t('tasks.emptyCopy')}</Text>
             </View>
           ) : (
             displayTasks.map(task => (
@@ -200,7 +206,8 @@ function TaskCard({
   onArchiveTask: (id: string) => void;
 }) {
   const theme = useAppTheme();
-  const stateLabel = isCurrentTask ? 'Current focus' : getTaskStateLabel(task.state);
+  const { language, t } = useTranslation();
+  const stateLabel = isCurrentTask ? t('task.currentFocus') : getTaskStateLabel(task.state, language);
 
   return (
     <View
@@ -229,23 +236,23 @@ function TaskCard({
       ) : null}
 
       <Text style={[styles.taskMeta, { color: theme.colors.muted }]}>
-        {formatTomatoProgress(task.completedTomatoes, task.estimatedTomatoes)}
+        {formatTomatoProgress(task.completedTomatoes, task.estimatedTomatoes, language)}
       </Text>
 
       <View style={styles.actionRow}>
         {activeTab === 'backlog' ? (
-          <ActionChip label="Move to Today" onPress={() => onMoveToToday(task.id)} />
+          <ActionChip label={t('tasks.moveToToday')} onPress={() => onMoveToToday(task.id)} />
         ) : null}
 
         {activeTab !== 'completed' && !isCurrentTask ? (
-          <ActionChip label="Set Focus" onPress={() => onSetCurrentTask(task.id)} />
+          <ActionChip label={t('tasks.setFocus')} onPress={() => onSetCurrentTask(task.id)} />
         ) : null}
 
         {activeTab !== 'completed' ? (
-          <ActionChip label="Mark Complete" onPress={() => onCompleteTask(task.id)} />
+          <ActionChip label={t('tasks.markComplete')} onPress={() => onCompleteTask(task.id)} />
         ) : null}
 
-        <ActionChip label="Archive" onPress={() => onArchiveTask(task.id)} quiet />
+        <ActionChip label={t('tasks.archive')} onPress={() => onArchiveTask(task.id)} quiet />
       </View>
     </View>
   );

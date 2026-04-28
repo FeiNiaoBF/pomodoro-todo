@@ -1,15 +1,17 @@
-export function getTimeOfDayGreeting(date = new Date()) {
+import { AppLanguage, translate } from '../i18n/translations';
+
+export function getTimeOfDayGreeting(date = new Date(), language: AppLanguage = 'en') {
   const hour = date.getHours();
 
   if (hour >= 5 && hour < 12) {
-    return 'Good morning';
+    return translate(language, 'greeting.morning');
   }
 
   if (hour >= 12 && hour < 18) {
-    return 'Good afternoon';
+    return translate(language, 'greeting.afternoon');
   }
 
-  return 'Good evening';
+  return translate(language, 'greeting.evening');
 }
 
 function getResolvedLocale() {

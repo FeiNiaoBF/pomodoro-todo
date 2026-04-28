@@ -36,6 +36,7 @@ describe('SettingsProvider', () => {
       longBreakInterval: 3,
       reducedMotion: true,
       theme: 'dark',
+      language: 'zh-Hans',
     };
 
     await AsyncStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(storedSettings));

@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { usePomodoro } from '../hooks/usePomodoro';
 import { useTasks } from '../hooks/useTasks';
+import { useTranslation } from '../hooks/useTranslation';
 import { tokens } from '../theme/tokens';
 import { getWeekdayLabel } from '../utils/dateLabels';
 
@@ -41,6 +42,7 @@ function shouldUseGentleFocusCopy(title?: string) {
 
 export function InsightsScreen() {
   const theme = useAppTheme();
+  const { language, t } = useTranslation();
   const { completedSessions, interruptions } = usePomodoro();
   const { completedTasks, todayTasks, currentTask } = useTasks();
 
@@ -74,7 +76,7 @@ export function InsightsScreen() {
 
       return {
         key: day.toISOString(),
-        label: getWeekdayLabel(day),
+        label: getWeekdayLabel(day, language === 'zh-Hans' ? 'zh-CN' : 'en-US'),
         count: completedSessions.filter(
           session =>
             session.mode === 'focus' &&
@@ -88,21 +90,21 @@ export function InsightsScreen() {
       focusTimeToday,
       completedTomatoes: focusSessionsToday.length,
       completedTasks: completedTodayTasks.length,
-      currentStreak: focusSessionsToday.length > 0 ? '1 day streak' : 'Starting',
+      currentStreak: focusSessionsToday.length > 0 ? t('insights.dayStreak') : t('insights.starting'),
       interruptionCount: interruptionsToday.length,
       taskProgress,
       wentBeyondPlan: rawTaskProgress > 100,
       weeklyRhythm,
     };
-  }, [completedSessions, completedTasks, interruptions, todayTasks]);
+  }, [completedSessions, completedTasks, interruptions, language, t, todayTasks]);
 
   const maxWeeklyCount = Math.max(1, ...insights.weeklyRhythm.map(day => day.count));
   const taskPlanText = todayTasks.length === 1
-    ? '1 task is part of today\'s plan.'
-    : `${todayTasks.length} tasks are part of today's plan.`;
+    ? t('insights.oneTaskPlan')
+    : t('insights.manyTasksPlan', { count: todayTasks.length });
   const heroCopy = currentTask && !shouldUseGentleFocusCopy(currentTask.title)
-    ? `Small steps count. Your current focus is ${currentTask.title}.`
-    : 'Small steps count. Keep going gently.';
+    ? t('insights.currentHero', { title: currentTask.title })
+    : t('insights.gentleHero');
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -111,8 +113,8 @@ export function InsightsScreen() {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Insights</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.muted }]}>Your rhythm is starting to form.</Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>{t('insights.title')}</Text>
+          <Text style={[styles.subtitle, { color: theme.colors.muted }]}>{t('insights.subtitle')}</Text>
         </View>
 
         <View
@@ -124,7 +126,7 @@ export function InsightsScreen() {
             },
           ]}
         >
-          <Text style={[styles.heroLabel, { color: theme.colors.primaryHover }]}>Today</Text>
+          <Text style={[styles.heroLabel, { color: theme.colors.primaryHover }]}>{t('insights.today')}</Text>
           <Text style={[styles.heroValue, { color: theme.colors.text }]}>{formatFocusTime(insights.focusTimeToday)}</Text>
           <Text style={[styles.heroText, { color: theme.colors.muted }]}>
             {heroCopy}
@@ -132,10 +134,10 @@ export function InsightsScreen() {
         </View>
 
         <View style={styles.metricsGrid}>
-          <MetricCard label="Completed tomatoes" value={String(insights.completedTomatoes)} />
-          <MetricCard label="Completed tasks" value={String(insights.completedTasks)} />
-          <MetricCard label="Current streak" value={insights.currentStreak} />
-          <MetricCard label="Interruptions noted" value={String(insights.interruptionCount)} />
+          <MetricCard label={t('insights.completedTomatoes')} value={String(insights.completedTomatoes)} />
+          <MetricCard label={t('insights.completedTasks')} value={String(insights.completedTasks)} />
+          <MetricCard label={t('insights.currentStreak')} value={insights.currentStreak} />
+          <MetricCard label={t('insights.interruptions')} value={String(insights.interruptionCount)} />
         </View>
 
         <View
@@ -148,7 +150,7 @@ export function InsightsScreen() {
           ]}
         >
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Task progress</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('insights.taskProgress')}</Text>
             <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>{insights.taskProgress}%</Text>
           </View>
           <View style={[styles.progressTrack, { backgroundColor: theme.colors.surfaceSoft }]}>
@@ -163,7 +165,7 @@ export function InsightsScreen() {
             />
           </View>
           <Text style={[styles.sectionText, { color: theme.colors.muted }]}>
-            {insights.wentBeyondPlan ? "You went beyond today's plan." : taskPlanText}
+            {insights.wentBeyondPlan ? t('insights.beyondPlan') : taskPlanText}
           </Text>
         </View>
 
@@ -177,8 +179,8 @@ export function InsightsScreen() {
           ]}
         >
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Weekly rhythm</Text>
-            <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>Light preview</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('insights.weeklyRhythm')}</Text>
+            <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>{t('insights.lightPreview')}</Text>
           </View>
           <View style={styles.rhythmRow}>
             {insights.weeklyRhythm.map(day => (
@@ -199,7 +201,7 @@ export function InsightsScreen() {
             ))}
           </View>
           <Text style={[styles.sectionText, { color: theme.colors.muted }]}>
-            This is a simple read on completed focus sessions for now.
+            {t('insights.simpleRead')}
           </Text>
         </View>
       </ScrollView>

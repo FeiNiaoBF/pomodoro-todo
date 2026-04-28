@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { useTranslation } from '../hooks/useTranslation';
 import { tokens } from '../theme/tokens';
 import { formatTomatoProgress, getTomatoDotCounts } from '../utils/tomatoProgress';
 
@@ -20,6 +21,7 @@ export function TomatoDots({
   showLabel = false,
 }: TomatoDotsProps) {
   const theme = useAppTheme();
+  const { language } = useTranslation();
   const dotSize = size === 'sm' ? 10 : 12;
   const dotTint = tint ?? theme.colors.primary;
   const dotCounts = getTomatoDotCounts(completed, total);
@@ -57,7 +59,7 @@ export function TomatoDots({
       </View>
       {showLabel ? (
         <Text style={[styles.label, { color: theme.colors.muted }]}>
-          {formatTomatoProgress(completed, total)}
+          {formatTomatoProgress(completed, total, language)}
         </Text>
       ) : null}
     </View>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { useTranslation } from '../hooks/useTranslation';
 import { tokens } from '../theme/tokens';
 import { TomatoDots } from './TomatoDots';
 
@@ -22,6 +23,7 @@ export function CurrentTaskHeroCard({
   onPress,
 }: CurrentTaskHeroCardProps) {
   const theme = useAppTheme();
+  const { t } = useTranslation();
   const hasDescription = description.trim().length > 0;
 
   return (
@@ -51,7 +53,7 @@ export function CurrentTaskHeroCard({
             },
           ]}
         >
-          <Text style={[styles.badgeText, { color: theme.colors.muted }]}>Ready now</Text>
+          <Text style={[styles.badgeText, { color: theme.colors.muted }]}>{t('task.readyNow')}</Text>
         </View>
       </View>
 

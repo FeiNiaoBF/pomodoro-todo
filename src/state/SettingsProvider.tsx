@@ -27,6 +27,7 @@ const SettingsContext = createContext<SettingsContextValue | null>(null);
 function normalizeSettings(settings: OneTomatoSettings): OneTomatoSettings {
   return {
     ...settings,
+    language: settings.language ?? defaultSettings.language,
     focusDurationMinutes: clampSettingValue(
       'focusDurationMinutes',
       settings.focusDurationMinutes

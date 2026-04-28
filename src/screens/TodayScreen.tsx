@@ -14,6 +14,7 @@ import { TomatoDots } from '../components/TomatoDots';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { usePomodoro } from '../hooks/usePomodoro';
 import { useTasks } from '../hooks/useTasks';
+import { useTranslation } from '../hooks/useTranslation';
 import { RootStackParamList } from '../navigation/types';
 import { tokens } from '../theme/tokens';
 import { getTimeOfDayGreeting } from '../utils/dateLabels';
@@ -21,6 +22,7 @@ import { formatDailyGoalProgress } from '../utils/tomatoProgress';
 
 export function TodayScreen() {
   const theme = useAppTheme();
+  const { language, t } = useTranslation();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { completedSessions, dailyGoal, startTomato } = usePomodoro();
   const {
@@ -34,7 +36,7 @@ export function TodayScreen() {
   const completedToday = completedSessions.filter(
     session => session.mode === 'focus' && session.status === 'completed'
   ).length;
-  const dailyProgress = formatDailyGoalProgress(completedToday, dailyGoal);
+  const dailyProgress = formatDailyGoalProgress(completedToday, dailyGoal, language);
 
   const focusTask = currentTask ?? todayTasks[0] ?? null;
   const displayedUpNextTasks = focusTask
@@ -58,10 +60,10 @@ export function TodayScreen() {
       >
         <View style={styles.header}>
           <View style={styles.headerTopRow}>
-            <Text style={[styles.greeting, { color: theme.colors.muted }]}>{getTimeOfDayGreeting()}</Text>
+            <Text style={[styles.greeting, { color: theme.colors.muted }]}>{getTimeOfDayGreeting(new Date(), language)}</Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Open settings"
+              accessibilityLabel={t('common.settings')}
               onPress={() => navigation.navigate('Settings')}
               style={({ pressed }) => [
                 styles.settingsButton,
@@ -72,10 +74,10 @@ export function TodayScreen() {
                 pressed && styles.settingsButtonPressed,
               ]}
             >
-              <Text style={[styles.settingsButtonText, { color: theme.colors.muted }]}>Settings</Text>
+              <Text style={[styles.settingsButtonText, { color: theme.colors.muted }]}>{t('common.settings')}</Text>
             </Pressable>
           </View>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Today&apos;s Focus</Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>{t('today.title')}</Text>
         </View>
 
         <View
@@ -88,7 +90,7 @@ export function TodayScreen() {
           ]}
         >
           <View style={styles.progressHeader}>
-            <Text style={[styles.progressLabel, { color: theme.colors.muted }]}>Tomatoes completed today</Text>
+            <Text style={[styles.progressLabel, { color: theme.colors.muted }]}>{t('today.completed')}</Text>
             <View style={styles.progressSummaryRow}>
               <Text style={[styles.progressValue, { color: theme.colors.text }]}>{dailyProgress.primaryText}</Text>
               {dailyProgress.secondaryText ? (
@@ -111,13 +113,13 @@ export function TodayScreen() {
               },
             ]}
           >
-            <Text style={[styles.stateTitle, { color: theme.colors.text }]}>Preparing your focus rhythm...</Text>
-            <Text style={[styles.stateCopy, { color: theme.colors.muted }]}>Small steps count.</Text>
+            <Text style={[styles.stateTitle, { color: theme.colors.text }]}>{t('today.preparingTitle')}</Text>
+            <Text style={[styles.stateCopy, { color: theme.colors.muted }]}>{t('today.preparingCopy')}</Text>
           </View>
         ) : focusTask ? (
           <>
             <CurrentTaskHeroCard
-              label="Current Tomato"
+              label={t('today.currentTomato')}
               title={focusTask.title}
               description={focusTask.description ?? ''}
               completedTomatoes={focusTask.completedTomatoes}
@@ -126,8 +128,8 @@ export function TodayScreen() {
 
             <Pressable
               accessibilityRole="button"
-              accessibilityHint="Starts one pomodoro for the current task"
-              accessibilityLabel="Start Tomato"
+              accessibilityHint={t('today.startTomato')}
+              accessibilityLabel={t('today.startTomato')}
               onPress={() => {
                 setCurrentTask(focusTask.id);
                 startTomato(focusTask);
@@ -140,7 +142,7 @@ export function TodayScreen() {
               ]}
             >
               <View style={[styles.primaryButtonIndicator, { backgroundColor: theme.colors.onPrimary }]} />
-              <Text style={[styles.primaryButtonText, { color: theme.colors.onPrimary }]}>Start Tomato</Text>
+              <Text style={[styles.primaryButtonText, { color: theme.colors.onPrimary }]}>{t('today.startTomato')}</Text>
             </Pressable>
           </>
         ) : (
@@ -153,11 +155,11 @@ export function TodayScreen() {
               },
             ]}
           >
-            <Text style={[styles.stateTitle, { color: theme.colors.text }]}>Your day is a blank slate.</Text>
-            <Text style={[styles.stateCopy, { color: theme.colors.muted }]}>Add one small task to begin.</Text>
+            <Text style={[styles.stateTitle, { color: theme.colors.text }]}>{t('today.blankTitle')}</Text>
+            <Text style={[styles.stateCopy, { color: theme.colors.muted }]}>{t('today.blankCopy')}</Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Add a task"
+              accessibilityLabel={t('today.addTask')}
               onPress={() => navigation.navigate('MainTabs', { screen: 'Tasks' })}
               style={({ pressed }) => [
                 styles.emptyAction,
@@ -165,15 +167,15 @@ export function TodayScreen() {
                 pressed && styles.primaryButtonPressed,
               ]}
             >
-              <Text style={[styles.emptyActionText, { color: theme.colors.onPrimary }]}>Add a task</Text>
+              <Text style={[styles.emptyActionText, { color: theme.colors.onPrimary }]}>{t('today.addTask')}</Text>
             </Pressable>
           </View>
         )}
 
         <View style={styles.upNextSection}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Up Next</Text>
-            <Text style={[styles.sectionMeta, { color: theme.colors.muted }]}>Keep it light</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('today.upNext')}</Text>
+            <Text style={[styles.sectionMeta, { color: theme.colors.muted }]}>{t('today.keepLight')}</Text>
           </View>
 
           <View style={styles.queue}>
@@ -187,8 +189,8 @@ export function TodayScreen() {
                   },
                 ]}
               >
-                <Text style={[styles.upNextEmptyTitle, { color: theme.colors.text }]}>No next task yet.</Text>
-                <Text style={[styles.upNextEmptyCopy, { color: theme.colors.muted }]}>Keep one tomato in focus.</Text>
+                <Text style={[styles.upNextEmptyTitle, { color: theme.colors.text }]}>{t('today.noNextTitle')}</Text>
+                <Text style={[styles.upNextEmptyCopy, { color: theme.colors.muted }]}>{t('today.noNextCopy')}</Text>
               </View>
             ) : (
               displayedUpNextTasks.map((task, index) => (

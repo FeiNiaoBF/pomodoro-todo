@@ -2,6 +2,7 @@ import { readJson, writeJson } from './storageClient';
 import { STORAGE_KEYS } from './storageKeys';
 
 export type OneTomatoTheme = 'system' | 'light' | 'dark';
+export type OneTomatoLanguage = 'system' | 'en' | 'zh-Hans';
 
 export interface OneTomatoSettings {
   focusDurationMinutes: number;
@@ -10,6 +11,7 @@ export interface OneTomatoSettings {
   longBreakInterval: number;
   reducedMotion: boolean;
   theme: OneTomatoTheme;
+  language: OneTomatoLanguage;
 }
 
 export const defaultSettings: OneTomatoSettings = {
@@ -19,6 +21,7 @@ export const defaultSettings: OneTomatoSettings = {
   longBreakInterval: 4,
   reducedMotion: false,
   theme: 'system',
+  language: 'system',
 };
 
 export const settingsLimits = {
@@ -58,7 +61,13 @@ function isSettings(value: unknown): value is OneTomatoSettings {
     settings.longBreakInterval >= settingsLimits.longBreakInterval.min &&
     settings.longBreakInterval <= settingsLimits.longBreakInterval.max &&
     typeof settings.reducedMotion === 'boolean' &&
-    (settings.theme === 'system' || settings.theme === 'light' || settings.theme === 'dark')
+    (settings.theme === 'system' || settings.theme === 'light' || settings.theme === 'dark') &&
+    (
+      settings.language === undefined ||
+      settings.language === 'system' ||
+      settings.language === 'en' ||
+      settings.language === 'zh-Hans'
+    )
   );
 }
 

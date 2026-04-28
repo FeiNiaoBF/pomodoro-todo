@@ -26,6 +26,36 @@ jest.mock('../../src/hooks/usePomodoro', () => ({
   }),
 }));
 
+jest.mock('../../src/hooks/useTranslation', () => ({
+  useTranslation: () => ({
+    language: 'en',
+    t: (key: string, replacements?: Record<string, string | number>) => {
+      const labels: Record<string, string> = {
+        'common.settings': 'Settings',
+        'today.title': "Today's Focus",
+        'today.completed': 'Tomatoes completed today',
+        'today.preparingTitle': 'Preparing your focus rhythm...',
+        'today.preparingCopy': 'Small steps count.',
+        'today.currentTomato': 'Current Tomato',
+        'today.startTomato': 'Start Tomato',
+        'today.blankTitle': 'Your day is a blank slate.',
+        'today.blankCopy': 'Add one small task to begin.',
+        'today.addTask': 'Add a task',
+        'today.upNext': 'Up Next',
+        'today.keepLight': 'Keep it light',
+        'today.noNextTitle': 'No next task yet.',
+        'today.noNextCopy': 'Keep one tomato in focus.',
+        'task.readyNow': 'Ready now',
+      };
+
+      return Object.entries(replacements ?? {}).reduce(
+        (text, [name, value]) => text.replace(`{${name}}`, String(value)),
+        labels[key] ?? key
+      );
+    },
+  }),
+}));
+
 const mockUseTasks = jest.fn();
 
 jest.mock('../../src/hooks/useTasks', () => ({

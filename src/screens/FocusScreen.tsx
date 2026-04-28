@@ -12,21 +12,24 @@ import { BreathingBackground } from '../components/BreathingBackground';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { TomatoDots } from '../components/TomatoDots';
 import { usePomodoro } from '../hooks/usePomodoro';
+import { useTranslation } from '../hooks/useTranslation';
 import { RootStackParamList } from '../navigation/types';
 import { InterruptionReason } from '../types/pomodoro';
 import { tokens } from '../theme/tokens';
 import { shouldShowDevTimerControls } from '../utils/devControls';
+import { TranslationKey } from '../i18n/translations';
 
-const INTERRUPTION_OPTIONS: Array<{ label: string; value: InterruptionReason }> = [
-  { label: 'Phone', value: 'phone' },
-  { label: 'Message', value: 'message' },
-  { label: 'People', value: 'people' },
-  { label: 'Self-distraction', value: 'self_distraction' },
-  { label: 'Other', value: 'other' },
+const INTERRUPTION_OPTIONS: Array<{ label: TranslationKey; value: InterruptionReason }> = [
+  { label: 'focus.reason.phone', value: 'phone' },
+  { label: 'focus.reason.message', value: 'message' },
+  { label: 'focus.reason.people', value: 'people' },
+  { label: 'focus.reason.self', value: 'self_distraction' },
+  { label: 'focus.reason.other', value: 'other' },
 ];
 
 export function FocusScreen() {
   const theme = useAppTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const {
@@ -80,7 +83,7 @@ export function FocusScreen() {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   }, [remainingSeconds]);
 
-  const pauseLabel = status === 'running' ? 'Pause' : 'Resume';
+  const pauseLabel = status === 'running' ? t('focus.pause') : t('focus.resume');
 
   const handleSaveForLater = () => {
     allowExitRef.current = true;
@@ -138,8 +141,10 @@ export function FocusScreen() {
         ]}
       >
         <View style={styles.header}>
-          <Text style={[styles.sessionLabel, { color: theme.colors.muted }]}>Focus session {focusSessionIndex} of 4</Text>
-          <Text style={[styles.currentFocusLabel, { color: theme.colors.primaryHover }]}>Current focus</Text>
+          <Text style={[styles.sessionLabel, { color: theme.colors.muted }]}>
+            {t('focus.sessionOf', { current: focusSessionIndex, total: 4 })}
+          </Text>
+          <Text style={[styles.currentFocusLabel, { color: theme.colors.primaryHover }]}>{t('task.currentFocus')}</Text>
           <Text style={[styles.taskTitle, { color: theme.colors.text }]}>{currentTask.title}</Text>
           {currentTask.description ? (
             <Text style={[styles.taskDescription, { color: theme.colors.muted }]}>{currentTask.description}</Text>
@@ -188,7 +193,7 @@ export function FocusScreen() {
 
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Interrupted"
+              accessibilityLabel={t('focus.interrupted')}
               onPress={() => setInterruptionVisible(true)}
               style={({ pressed }) => [
                 styles.secondaryControl,
@@ -199,13 +204,13 @@ export function FocusScreen() {
                 pressed && styles.quietPressed,
               ]}
             >
-              <Text style={[styles.secondaryControlText, { color: theme.colors.text }]}>Interrupted</Text>
+              <Text style={[styles.secondaryControlText, { color: theme.colors.text }]}>{t('focus.interrupted')}</Text>
             </Pressable>
           </View>
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Save for later"
+            accessibilityLabel={t('focus.saveForLater')}
             onPress={handleSaveForLater}
             style={({ pressed }) => [
               styles.tertiaryControl,
@@ -213,13 +218,13 @@ export function FocusScreen() {
               pressed && styles.quietPressed,
             ]}
           >
-            <Text style={[styles.tertiaryControlText, { color: theme.colors.muted }]}>Save for later</Text>
+            <Text style={[styles.tertiaryControlText, { color: theme.colors.muted }]}>{t('focus.saveForLater')}</Text>
           </Pressable>
 
           {shouldShowDevTimerControls() ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Dev complete session now"
+              accessibilityLabel={t('focus.devComplete')}
               onPress={handleCompleteNow}
               style={({ pressed }) => [
                 styles.devControl,
@@ -227,7 +232,7 @@ export function FocusScreen() {
                 pressed && styles.quietPressed,
               ]}
             >
-              <Text style={[styles.devControlText, { color: theme.colors.muted }]}>Dev: Complete session</Text>
+              <Text style={[styles.devControlText, { color: theme.colors.muted }]}>{t('focus.devComplete')}</Text>
             </Pressable>
           ) : null}
         </View>
@@ -259,8 +264,8 @@ export function FocusScreen() {
             ]}
           >
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>What interrupted your focus?</Text>
-              <Text style={[styles.modalSupport, { color: theme.colors.muted }]}>This won&apos;t break your streak.</Text>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>{t('focus.interruptionTitle')}</Text>
+              <Text style={[styles.modalSupport, { color: theme.colors.muted }]}>{t('focus.interruptionSupport')}</Text>
             </View>
 
             <View style={styles.optionsList}>
@@ -271,7 +276,7 @@ export function FocusScreen() {
                   <Pressable
                     key={option.value}
                     accessibilityRole="button"
-                    accessibilityLabel={option.label}
+                    accessibilityLabel={t(option.label)}
                     onPress={() => setSelectedInterruption(option.value)}
                     style={({ pressed }) => [
                       styles.optionChip,
@@ -288,7 +293,7 @@ export function FocusScreen() {
                         { color: isSelected ? theme.colors.primaryHover : theme.colors.text },
                       ]}
                     >
-                      {option.label}
+                      {t(option.label)}
                     </Text>
                   </Pressable>
                 );
@@ -298,7 +303,7 @@ export function FocusScreen() {
             <View style={styles.modalActions}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Resume"
+                accessibilityLabel={t('focus.resume')}
                 onPress={handleResumeFromInterruption}
                 style={({ pressed }) => [
                   styles.modalPrimaryAction,
@@ -306,12 +311,12 @@ export function FocusScreen() {
                   pressed && styles.quietPressed,
                 ]}
               >
-                <Text style={[styles.modalPrimaryText, { color: theme.colors.onPrimary }]}>Resume</Text>
+                <Text style={[styles.modalPrimaryText, { color: theme.colors.onPrimary }]}>{t('focus.resume')}</Text>
               </Pressable>
 
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Save for later"
+                accessibilityLabel={t('focus.saveForLater')}
                 onPress={handleSaveAfterInterruption}
                 style={({ pressed }) => [
                   styles.modalSecondaryAction,
@@ -322,7 +327,7 @@ export function FocusScreen() {
                   pressed && styles.quietPressed,
                 ]}
               >
-                <Text style={[styles.modalSecondaryText, { color: theme.colors.text }]}>Save for later</Text>
+                <Text style={[styles.modalSecondaryText, { color: theme.colors.text }]}>{t('focus.saveForLater')}</Text>
               </Pressable>
             </View>
           </View>

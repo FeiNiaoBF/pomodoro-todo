@@ -11,6 +11,7 @@ import { FocusScreen } from '../screens/FocusScreen';
 import { BreakScreen } from '../screens/BreakScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { useTranslation } from '../hooks/useTranslation';
 import { tokens } from '../theme/tokens';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -64,6 +65,7 @@ function TabGlyph({
 
 function MainTabs() {
   const theme = useAppTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, 12);
 
@@ -91,7 +93,7 @@ function MainTabs() {
         name="Today"
         component={TodayScreen}
         options={{
-          tabBarLabel: 'Today',
+          tabBarLabel: t('nav.today'),
           tabBarIcon: ({ focused }) => <TabGlyph focused={focused} variant="today" />,
         }}
       />
@@ -99,7 +101,7 @@ function MainTabs() {
         name="Tasks"
         component={TasksScreen}
         options={{
-          tabBarLabel: 'Tasks',
+          tabBarLabel: t('nav.tasks'),
           tabBarIcon: ({ focused }) => <TabGlyph focused={focused} variant="tasks" />,
         }}
       />
@@ -107,7 +109,7 @@ function MainTabs() {
         name="Insights"
         component={InsightsScreen}
         options={{
-          tabBarLabel: 'Insights',
+          tabBarLabel: t('nav.insights'),
           tabBarIcon: ({ focused }) => <TabGlyph focused={focused} variant="insights" />,
         }}
       />
