@@ -1,154 +1,182 @@
-# One Tomato 快速启动
+# One Tomato Quickstart
 
-本文件说明如何运行当前仓库，并说明当前实现与目标产品文档之间的关系。
+本文件说明当前仓库如何运行、如何验证，以及下一步开发应先看哪里。
 
-## 一、先知道两件事
+## 1. 当前项目状态
 
-### 1. 当前仓库可以运行
+当前应用主结构为：
 
-项目当前基于 Expo + React Native，可直接本地启动。
+- Bottom tabs: `Today / Tasks / Insights`
+- Flow screens: `Focus / Break`
+- Secondary screen: `Settings`
+- Localization: `System / English / 中文`
+- Storage: AsyncStorage，本地优先，无账号、无后端
+- Build: Expo + EAS，已可打 Android/iOS 内测包
 
-### 2. 文档中的产品模型已经升级
+## 2. 环境要求
 
-当前代码仍保留旧命名遗留，如 `TimerScreen`、`TodoScreen`、`StatsScreen`、`useTimer`。  
-这些名称只代表当前实现阶段，不再作为产品命名标准。
+- Node.js 18 或更高
+- npm
+- Expo / EAS 通过项目脚本或 `npx` 使用
+- 本机如使用 `fnm`，先切换到项目需要的 Node 版本，再执行安装和启动命令
 
-从现在开始，文档统一使用：
-
-- Today
-- Focus
-- Break
-- Tasks
-- Insights
-
-## 二、环境要求
-
-- Node.js ≥ 18
-- Expo CLI：`npm install -g expo-cli`
-
-## 三、安装依赖
+常用检查：
 
 ```bash
-cd pomodoro-todo
+node -v
+npm -v
+```
+
+## 3. 安装依赖
+
+```bash
 npm install
 ```
 
-## 四、启动项目
+如果刚切换 Node 版本或依赖异常，优先重新执行 `npm install`，不要手动改 `node_modules`。
 
-### 浏览器运行
-
-```bash
-npm run web
-```
-
-### 手机扫码运行
+## 4. 本地启动
 
 ```bash
 npm run start
 ```
 
-### 指定平台
+常用平台命令：
 
 ```bash
+npm run web
 npm run android
 npm run ios
 ```
 
-## 五、当前代码结构
+如果 Expo Dev Server 已经运行，继续使用现有地址即可，例如 `http://localhost:8082/`。
 
-```text
-src/
-├── components/
-│   └── TimerRing.tsx
-├── hooks/
-│   ├── useTimer.ts
-│   └── useTodos.ts
-├── navigation/
-│   ├── RootNavigator.tsx
-│   └── types.ts
-├── screens/
-│   ├── TimerScreen.tsx
-│   ├── TodoScreen.tsx
-│   ├── StatsScreen.tsx
-│   └── SettingsScreen.tsx
-├── types/
-│   └── index.ts
-└── utils/
-    └── StorageService.ts
+## 5. 验证命令
+
+开发或发布前至少运行：
+
+```bash
+npx tsc --noEmit
+npm test -- --runInBand
+git diff --check
 ```
 
 说明：
 
-- 以上是当前仓库实际文件结构
-- 目标产品结构请以 `docs/` 中的文档为准
-- 后续代码重构阶段将逐步从旧命名迁移到 `Today / Focus / Break / Tasks / Insights`
+- `npx tsc --noEmit` 检查 TypeScript 类型。
+- `npm test -- --runInBand` 串行运行 Jest，适合当前 React Native 测试环境。
+- `git diff --check` 检查空白字符问题。
 
-## 六、目标产品结构
+## 6. 当前代码结构
 
 ```text
-Bottom tabs:
-- Today
-- Tasks
-- Insights
-
-Immersive flow screens:
-- Focus
-- Break
-
-Secondary page:
-- Settings
+src/
+├── components/
+│   ├── BreathingBackground.tsx
+│   ├── CurrentTaskHeroCard.tsx
+│   ├── SegmentedProgressBar.tsx
+│   └── TomatoDots.tsx
+├── data/
+│   └── todaySample.ts
+├── hooks/
+│   ├── useAppTheme.ts
+│   ├── usePomodoro.ts
+│   ├── useSettings.ts
+│   ├── useTasks.ts
+│   └── useTranslation.ts
+├── i18n/
+│   ├── locales/
+│   │   ├── en.json
+│   │   └── zh-CN.json
+│   └── translations.ts
+├── navigation/
+│   ├── LocalStackNavigator.tsx
+│   ├── RootNavigator.tsx
+│   └── types.ts
+├── screens/
+│   ├── TodayScreen.tsx
+│   ├── FocusScreen.tsx
+│   ├── BreakScreen.tsx
+│   ├── TasksScreen.tsx
+│   ├── InsightsScreen.tsx
+│   └── SettingsScreen.tsx
+├── state/
+│   ├── PomodoroProvider.tsx
+│   ├── SettingsProvider.tsx
+│   ├── TasksProvider.tsx
+│   └── pomodoroRecovery.ts
+├── storage/
+│   ├── activeTimerStorage.ts
+│   ├── migrations.ts
+│   ├── pomodoroStorage.ts
+│   ├── settingsStorage.ts
+│   ├── storageClient.ts
+│   ├── storageKeys.ts
+│   └── tasksStorage.ts
+├── theme/
+├── types/
+└── utils/
 ```
 
-## 七、当前开发阶段关注点
+## 7. 数据与设置
 
-当前文档定义的方向是：
-
-- 首屏应为 `Today`
-- 主操作应为 `Start Tomato`
-- `Focus` 与 `Break` 形成沉浸式节奏闭环
-- `Tasks` 负责轻量计划与快速添加
-- `Insights` 负责温和复盘
-
-## 八、数据与本地存储
-
-当前和目标方向都坚持：
-
-- 本地优先
-- 无需后端
-- 无需账号
-- 隐私优先
-
-目标 storage keys 以文档为准：
+当前核心 storage keys：
 
 - `@one-tomato/tasks`
 - `@one-tomato/sessions`
 - `@one-tomato/interruptions`
 - `@one-tomato/settings`
+- `@one-tomato/active-timer`
 - `@one-tomato/version`
 
-## 九、推荐阅读顺序
+语言设置目前使用：
 
-1. `docs/PRD.md`
-2. `docs/design.md`
-3. `docs/architecture.md`
-4. `docs/plan.md`
-5. `docs/screen-flow.md`
-6. `docs/data-model.md`
+- `system`
+- `en`
+- `zh-CN`
 
-## 十、常见问题
+## 8. 发布与真机 QA
 
-### Q: 为什么文档和当前代码命名不一致？
+发布前先看：
 
-A: 因为这次先完成文档体系重构，代码迁移会在后续实现阶段进行。
+1. `docs/release-checklist.md`
+2. `docs/visual-qa-checklist.md`
+3. `docs/release-build-notes.md`
+4. `docs/real-device-qa-findings.md`
 
-### Q: 当前项目是否依赖云端？
+重点真机检查：
 
-A: 不依赖，产品方向仍然是本地优先。
+- 首次安装是否进入 Today。
+- 语言切换和重启持久化是否正确。
+- Focus 结束、Break 开始、稍后继续等计时状态是否符合预期。
+- Insights 中的今日专注时间是否只来自已完成的专注记录。
+- 小屏手机上中英文按钮不截断、不重叠。
 
-### Q: Focus 和 Break 是不是底部 Tab？
+## 9. 下一步建议
 
-A: 不是。它们是沉浸式流程页。
+优先级从高到低：
 
-### Q: 首屏是不是 timer？
+1. 提交当前中文 / English 语言改动，避免后续功能混入同一批变更。
+2. 补后台与锁屏体验：AppState 校准、本地通知、Focus/Break 完成提醒。
+3. 梳理 Today 的每日目标算法，避免固定 `8` 带来的误解。
+4. 继续完善 Insights 的数据解释、图表含义和空状态。
+5. 集中整理迁移逻辑，减少 Provider 内分散的历史兼容代码。
+6. 补任务编辑、删除、归档恢复、教程任务重置等任务管理能力。
 
-A: 不是。目标产品首屏是 `Today`。
+## 10. 常见问题
+
+### 项目现在是不是可以上手机测试？
+
+可以。当前项目已经可以通过 Expo / EAS 构建并部署到真机。
+
+### Focus 和 Break 是底部 Tab 吗？
+
+不是。它们是从 Today 进入的沉浸式流程页。
+
+### 应用是否依赖云端？
+
+不依赖。当前方向是本地优先、无账号、无后端同步。
+
+### 为什么还有 `zh-Hans`？
+
+只用于兼容旧本地设置。当前正式语言标识是 `zh-CN`。

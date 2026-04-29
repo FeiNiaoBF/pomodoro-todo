@@ -4,9 +4,21 @@ Date: 2026-04-27
 
 Source: User-provided iPhone screenshots from Today, Focus, Break, Tasks, and Insights.
 
+Status: Historical QA record. Use this file as regression reference together with `visual-qa-checklist.md`.
+
 ## Summary
 
-The app is generally rendering correctly on device: safe area spacing, bottom navigation, core cards, and main controls are visible and tappable. The remaining issues are mostly data-display edge cases and a few polish items caused by over-completed tomato counts, very short task titles, development controls, and locale-specific labels.
+The app was generally rendering correctly on device: safe area spacing, bottom navigation, core cards, and main controls were visible and tappable. Several findings have since been addressed in code or checklist coverage. Keep the items below as regression checks when building a new EAS package.
+
+## Current Regression Focus
+
+- Mainland Chinese / English language switching and persistence.
+- First-run default tutorial tasks are localized.
+- Save for later does not unexpectedly reset remaining focus time.
+- Today does not show misleading completed-today progress on a clean install.
+- Insights focus time comes from actual focus work.
+- Weekly rhythm labels are distinct in both English and Mainland Chinese.
+- Small-phone layout does not truncate key Chinese or English buttons.
 
 ## Findings
 
@@ -33,6 +45,9 @@ Recommended fix:
 - Use supportive copy when completed tomatoes exceed the estimate, such as `6 completed` and `Estimated 1`.
 - For daily goal progress, avoid `9/8`; use `9 completed`, `Goal 8`, or `1 beyond goal`.
 
+Regression check:
+- Verify Today, Focus, Tasks, and Insights do not expose invalid-looking ratios such as `6/1`.
+
 ### P1 - Development-only focus control is visible during device QA
 
 Screen:
@@ -48,6 +63,9 @@ Recommended fix:
 - Keep the action available only behind a stronger explicit flag, for example `EXPO_PUBLIC_SHOW_DEV_TIMER_CONTROLS=true`.
 - Default to hidden even in Expo development builds unless that flag is enabled.
 
+Regression check:
+- Verify preview and production EAS profiles hide the development control.
+
 ### P1 - Today Up Next tomato dots appear completed for future tasks
 
 Screen:
@@ -62,6 +80,9 @@ Impact:
 Recommended fix:
 - In Today Up Next rows, pass the task's real `completedTomatoes` value to `TomatoDots`.
 - Do not pass `estimatedTomatoes` as both total and completed.
+
+Regression check:
+- Verify new or future tasks with zero completed tomatoes show unfilled progress.
 
 ### P2 - Very short task titles still feel visually under-supported
 
@@ -117,6 +138,9 @@ Impact:
 Recommended fix:
 - Use a locale-safe weekday formatter.
 - For Chinese, display `一`, `二`, `三`, `四`, `五`, `六`, `日`, or use fixed weekday labels independent of locale.
+
+Regression check:
+- Verify English and Mainland Chinese weekly labels are distinct.
 
 ### P2 - Break timer composition is tight on device
 
@@ -176,9 +200,8 @@ Recommended fix:
 
 ## Suggested Next Fix Order
 
-1. Fix shared tomato progress formatting and Today Up Next completed-dot bug.
-2. Hide the dev-only Focus completion button behind an explicit opt-in flag.
-3. Fix locale-safe Weekly rhythm labels.
-4. Make Today greeting time-aware.
-5. Polish very short task title presentation on Today and Focus.
-6. Recheck Break timer spacing on the smallest target phone.
+1. Confirm all historical findings stay fixed in the latest EAS preview build.
+2. Verify localization and first-run tutorial tasks on a clean install.
+3. Verify Save for later and active timer recovery.
+4. Verify Insights focus-time source and graph labels.
+5. Recheck Break timer spacing on the smallest target phone.

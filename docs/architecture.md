@@ -1,192 +1,182 @@
 # One Tomato 技术架构
 
-> 文档描述目标产品架构。当前仓库实现仍存在旧命名遗留，代码迁移应在后续实现阶段进行。
+> 当前架构说明。本文以现有 Expo React Native 应用为准，并记录下一步需要补强的技术点。
 
-## 一、技术决策
+## 1. 技术栈
 
-### Expo React Native 作为起点
+- Expo React Native
+- React Navigation Bottom Tabs + Native Stack
+- AsyncStorage
+- Jest + Testing Library
+- TypeScript
+- EAS Build
 
-保留现有技术方向：
+当前应用移动端优先，同时保留 Web 调试能力。数据默认本地保存，不依赖账号、后端或同步服务。
 
-- 移动端优先，适合 `Today / Focus / Break` 单列体验
-- 支持 iOS、Android、Web
-- 开发效率高，适合快速迭代 MVP
-- 与未来桌面封装路线兼容
-
-### AsyncStorage 作为本地优先存储
-
-- 无需后端和用户账户
-- 满足隐私优先策略
-- 满足 MVP 阶段任务、会话和设置持久化需求
-
-### Tauri 作为未来桌面包装层
-
-- 当前仍以 Expo 为主应用层
-- 桌面版本未来以 Tauri 封装 Web 构建产物为主
-- 后续补足托盘与全局快捷键能力
-
-## 二、整体分层
-
-```text
-Presentation Layer
-  TodayScreen / FocusScreen / BreakScreen / TasksScreen / InsightsScreen / SettingsScreen
-  NavigationContainer + Bottom Tabs + Stack / Modal
-
-Logic Layer
-  usePomodoro / useTasks / useTodayFocus / useInsights / useSettings / useInterruptionLog
-  Session orchestration + task selection + insight aggregation
-
-Data Layer
-  AsyncStorage adapters
-  Task / Session / Interruption / Settings models
-  Versioned migration strategy
-```
-
-## 三、组件树
+## 2. 页面结构
 
 ```text
 App
-├── NavigationContainer
-│   ├── BottomTabNavigator
-│   │   ├── TodayTab
-│   │   │   └── TodayScreen
-│   │   │       ├── TodayHeader
-│   │   │       ├── DailyProgress
-│   │   │       ├── CurrentTaskCard
-│   │   │       ├── StartTomatoButton
-│   │   │       └── UpNextList
-│   │   ├── TasksTab
-│   │   │   └── TasksScreen
-│   │   │       ├── QuickAddInput
-│   │   │       ├── TaskTabs
-│   │   │       └── TaskList
-│   │   └── InsightsTab
-│   │       └── InsightsScreen
-│   │           ├── TodaySummary
-│   │           ├── WeeklyRhythm
-│   │           ├── PlanningAccuracy
-│   │           └── InterruptionBreakdown
-│   └── Stack / Modal Screens
-│       ├── FocusScreen
-│       │   ├── BreathingBackground
-│       │   ├── FocusTimer
-│       │   ├── FocusControls
-│       │   └── InterruptionModal
-│       ├── BreakScreen
-│       ├── TaskEditSheet
-│       └── SettingsScreen
+└── RootNavigator
+    ├── MainTabs
+    │   ├── TodayScreen
+    │   ├── TasksScreen
+    │   └── InsightsScreen
+    ├── FocusScreen
+    ├── BreakScreen
+    └── SettingsScreen
 ```
 
-## 四、导航与路由模型
+规则：
 
-逻辑路由定义：
+- `Today / Tasks / Insights` 是主底部导航。
+- `Focus / Break` 是沉浸式流程页，不出现在底部导航。
+- `Settings` 是次级页面，从 Today 进入。
+- Focus 和 Break 禁用手势返回，避免破坏计时流程。
+
+## 3. 目录结构
 
 ```text
-/               → redirect to /today
-/today          → TodayScreen
-/focus          → FocusScreen
-/break          → BreakScreen
-/tasks          → TasksScreen
-/insights       → InsightsScreen
-/settings       → SettingsScreen
+src/
+├── components/   共享 UI 组件
+├── data/         首次体验与默认任务数据
+├── hooks/        Context hooks、主题和翻译 hooks
+├── i18n/         语言入口与 locale JSON
+├── navigation/   Tab / Stack 路由
+├── screens/      页面级组件
+├── state/        Tasks / Pomodoro / Settings Provider
+├── storage/      AsyncStorage 适配、key、迁移入口
+├── theme/        tokens、字体、主题
+├── types/        Task、Pomodoro、ActiveTimer 类型
+└── utils/        展示格式、图表尺度、日期标签等纯函数
 ```
 
-导航规则：
+## 4. 状态层
 
-- 底部主导航仅包含 `Today | Tasks | Insights`
-- `Focus` 与 `Break` 作为沉浸式流程页，通过 Stack 或 Modal 进入
-- `Settings` 为次级页面，不属于主导航
+### TasksProvider
 
-说明：
+负责：
 
-- 即使当前 Expo 项目尚未以 URL 形式实现这些路径，这里仍作为信息架构与产品导航的标准定义
+- 任务读取与持久化
+- 首次默认任务
+- 新增任务
+- 设置当前专注
+- 标记完成
+- 今日 / 待安排 / 已完成等状态流转
 
-## 五、核心 Hooks 规划
+### PomodoroProvider
 
-| Hook | 职责 |
-|------|------|
-| `usePomodoro` | 控制 Focus / Break 会话、暂停、恢复、完成、保存待后续处理 |
-| `useTasks` | 任务增删改查、状态流转、今日任务与积压管理 |
-| `useTodayFocus` | 计算当前优先任务、Up Next、今日进度 |
-| `useInsights` | 聚合每日统计、周节奏、计划准确率、中断分布 |
-| `useSettings` | 番茄时长、休息时长、通知与主题设置 |
-| `useInterruptionLog` | 记录中断原因并关联到会话与洞察 |
+负责：
 
-## 六、数据流
+- Focus / Break 会话
+- Pause / Resume
+- Interrupted
+- Save for later
+- 完成 Focus 后写入 session
+- 完成番茄后更新任务进度
+- Active timer 快照恢复
 
-### Start Tomato
+### SettingsProvider
+
+负责：
+
+- 专注时长、短休、长休、长休间隔
+- 主题：System / Light / Dark
+- 语言：System / English / 中文
+- Reduced motion
+- 旧语言值 `zh-Hans` 迁移到 `zh-CN`
+
+## 5. 数据层
+
+当前存储基于 AsyncStorage，所有 key 集中在 `src/storage/storageKeys.ts`。
 
 ```text
-Today
-  → useTodayFocus.getCurrentTask()
-  → usePomodoro.start(taskId)
-  → FocusScreen
-  → persist session
+@one-tomato/tasks
+@one-tomato/sessions
+@one-tomato/interruptions
+@one-tomato/settings
+@one-tomato/active-timer
+@one-tomato/version
 ```
 
-### Complete Pomodoro
+存储层原则：
+
+- Provider 不直接拼 storage key。
+- 读写通过 `storageClient` 和具体 storage adapter。
+- 迁移逻辑应逐步集中到 `migrations.ts`。
+
+## 6. 本地化架构
+
+当前语言文件：
 
 ```text
-FocusScreen
-  → usePomodoro.complete()
-  → session stored
-  → task.completedTomatoes += 1
-  → BreakScreen
+src/i18n/locales/en.json
+src/i18n/locales/zh-CN.json
 ```
 
-### Interruption
+要求：
 
-```text
-FocusScreen
-  → InterruptionModal
-  → useInterruptionLog.add()
-  → session status updated
-  → Insights
+- 两个 JSON 文件 key 必须一致。
+- `translations.ts` 只负责聚合和类型导出。
+- 用户创建的任务标题、描述不翻译。
+- 旧 `zh-Hans` 只用于本地设置迁移。
+
+## 7. 计时与恢复
+
+当前已经有 active timer 快照和恢复逻辑：
+
+- running 状态使用 `expectedEndAt` 做墙钟恢复。
+- paused 状态保存剩余秒数。
+- 重新打开应用后恢复当前计时状态。
+
+下一步需要补强：
+
+- AppState 前后台切换校准。
+- Focus 完成和 Break 完成本地通知。
+- 锁屏后返回应用的边界测试。
+
+## 8. Insights 聚合
+
+当前 Insights 基于本地任务、会话和中断记录计算：
+
+- 今日实际专注时间
+- 完成番茄
+- 完成任务
+- 当前连续节奏
+- 今日计划完成度
+- 任务进度列表
+- 本周专注图
+- 中断分布
+
+下一步重点不是增加更多数字，而是让每个指标来源更清楚、图表更可解释。
+
+## 9. 测试策略
+
+当前测试覆盖：
+
+- 本地化 key 和语言切换
+- Settings 持久化
+- Tasks Provider
+- Pomodoro Provider
+- Active timer recovery
+- Today screen
+- 展示 helper
+
+发布前固定运行：
+
+```bash
+npx tsc --noEmit
+npm test -- --runInBand
+git diff --check
 ```
 
-## 七、存储策略
+## 10. 下一步技术债
 
-### 存储键
+优先级：
 
-| Key | 类型 | 说明 |
-|------|------|------|
-| `@one-tomato/tasks` | `Task[]` | 所有任务 |
-| `@one-tomato/sessions` | `PomodoroSession[]` | 所有 Focus / Break 会话 |
-| `@one-tomato/interruptions` | `Interruption[]` | 中断日志 |
-| `@one-tomato/settings` | `Settings` | 用户设置 |
-| `@one-tomato/version` | `string` | 数据版本与迁移依据 |
-
-### 迁移原则
-
-- 启动时优先读取 `@one-tomato/version`
-- 若版本不一致，先迁移旧结构再加载业务数据
-- 对旧任务布尔完成态做一次性映射
-- 对旧 `@pomodoro/*` 键名做统一迁移
-
-## 八、跨平台策略
-
-- Mobile：iOS / Android
-- Web：浏览器访问
-- Desktop：未来基于 Tauri 封装
-
-差异处理原则：
-
-- 通知能力按平台适配
-- 动效与触感反馈按平台降级
-- 数据模型与产品流程保持一致，不因平台切换而改变主导航结构
-
-## 九、性能策略
-
-| 关注点 | 策略 |
-|------|------|
-| 计时器精度 | 使用 `useRef + setInterval` 或等效时间校准机制 |
-| 首屏速度 | `Today` 优先加载，非首屏内容延迟准备 |
-| 存储频率 | 会话关键节点写入，不做每秒持久化 |
-| 任务列表 | 使用虚拟化列表，避免整页重渲染 |
-| Insights 聚合 | 尽量在读取层做聚合缓存，减少重复计算 |
-
-## 十、当前代码现状说明
-
-当前仓库实现仍保留旧的 screen / hook 命名，例如 `TimerScreen`、`TodoScreen`、`StatsScreen`、`useTimer`。这些名字属于历史实现遗留，不再代表 One Tomato 的目标产品结构。
-
-后续代码重构阶段应以本文件中的 `Today / Focus / Break / Tasks / Insights` 架构为准。
+1. 提交当前语言结构整理。
+2. AppState + 本地通知。
+3. Today daily goal 从硬编码改为设置或计划派生。
+4. 集中迁移逻辑。
+5. 完善任务编辑 / 删除 / 归档恢复。
+6. 为 Insights 聚合补更多边界测试。

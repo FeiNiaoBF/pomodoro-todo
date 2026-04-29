@@ -1,48 +1,83 @@
-# 文档索引与 Source of Truth
+# One Tomato Docs
 
-本目录用于统一定义 `One Tomato` 的产品、设计、架构与实现路线。
+本目录记录当前产品事实、设计约束、发布流程和后续路线。除非特别说明，文档以当前可运行应用为基准。
 
-## 一、文档优先级
+## 1. 推荐阅读顺序
 
-1. `PRD.md` — 产品需求与功能优先级
-2. `design.md` — UI/UX 设计系统与页面规则
-3. `architecture.md` — 技术架构与模块关系
-4. `plan.md` — 开发路线图
-5. `screen-flow.md` — 页面流转与状态切换
-6. `data-model.md` — 数据结构、存储键与迁移策略
+1. `PRD.md` - 产品定位、核心流程和优先级
+2. `architecture.md` - 当前技术结构和模块边界
+3. `data-model.md` - 类型、存储键和迁移策略
+4. `design.md` - 视觉、交互和文案原则
+5. `screen-flow.md` - 页面流转和关键状态
+6. `plan.md` - 下一步路线
+7. `visual-qa-checklist.md` - 真机视觉、本地化和持久化 QA
+8. `release-checklist.md` - 发布前逐项检查
+9. `release-build-notes.md` - EAS 构建和发布标识
+10. `real-device-qa-findings.md` - 历史真机 QA 发现与回归重点
 
-## 二、命名 Source of Truth
+## 2. 当前 Source of Truth
 
-文档统一使用以下产品命名：
+产品页面命名：
 
-- Today
-- Focus
-- Break
-- Tasks
-- Insights
+- `Today`
+- `Focus`
+- `Break`
+- `Tasks`
+- `Insights`
+- `Settings`
 
-不再使用以下旧主模型命名：
+主导航：
 
-- Timer
-- Todo
-- Stats
+- `Today`
+- `Tasks`
+- `Insights`
 
-说明：
+语言：
 
-- `timer` 可以作为组件或局部功能术语存在，例如 Focus timer、Break timer
-- 但在页面级与产品级叙事中，应使用 `FocusScreen` 而不是 `TimerScreen`
+- `System`
+- `English`
+- `中文`
 
-## 三、阅读建议
+语言 key：
 
-如果你要：
+- `system`
+- `en`
+- `zh-CN`
 
-- 理解产品目标，先读 `PRD.md`
-- 设计界面，先读 `design.md`
-- 规划实现结构，先读 `architecture.md`
-- 安排开发节奏，先读 `plan.md`
-- 理解页面跳转，读 `screen-flow.md`
-- 设计存储和类型，读 `data-model.md`
+旧值 `zh-Hans` 仅用于迁移兼容。
 
-## 四、当前仓库说明
+## 3. 当前实现说明
 
-当前代码实现仍保留旧命名遗留。这些命名不再代表产品方向，后续代码阶段应逐步迁移到本目录定义的 One Tomato 结构。
+当前仓库已经完成基础闭环：
+
+- Today 首屏
+- 当前专注任务
+- Focus 计时
+- Pause / Resume
+- Interrupted / Save for later
+- Break 流程
+- Tasks 快速添加和状态切换
+- Insights 基础数据展示
+- Settings 中的时长、主题、语言、Reduced motion
+- 本地持久化
+- 中英文多语言文件拆分
+
+当前仍需要继续打磨：
+
+- 后台 / 锁屏时的通知和 AppState 校准
+- Today 每日目标算法
+- Insights 数据解释和图表表达
+- 任务编辑、删除、归档恢复
+- 集中式数据迁移
+
+## 4. 旧命名说明
+
+旧文档或早期讨论里的 `Timer / Todo / Stats` 不再作为产品结构使用。
+
+允许保留的局部技术词：
+
+- `timer` 作为计时器功能
+- `tomato` 作为番茄数单位
+- `stats` 作为内部统计计算
+
+页面级和用户叙事应使用 `Today / Focus / Break / Tasks / Insights`。

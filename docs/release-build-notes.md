@@ -12,6 +12,7 @@
 - Android versionCode: `1`
 - iOS bundle identifier: `com.yeekox.onetomato`
 - iOS buildNumber: `1`
+- Languages: English, Mainland Chinese
 
 这些标识在首次提交 App Store / Google Play 前需要最终确认。尤其是 Android package 和 iOS bundle identifier，一旦正式上架后就不应该再修改。
 
@@ -44,3 +45,12 @@ npx eas-cli build --platform all --profile production
 - `assets/splash-icon.png` 在小屏和大屏上不变形。
 - Android 生产包不申请多余权限。
 - 隐私说明保持与产品事实一致：本地优先、无后端同步。
+- 发布包已完成 `docs/release-checklist.md` 和 `docs/visual-qa-checklist.md`。
+- 语言 QA 已覆盖 System / English / 中文。
+
+## 当前发布风险
+
+- 后台 / 锁屏通知尚未作为完整体验交付。
+- Today 每日目标仍需确认最终产品策略。
+- Insights 仍需要继续打磨指标说明和图表口径。
+- 上架前仍需准备商店截图、隐私政策和应用描述。

@@ -1,7 +1,7 @@
 # One Tomato PRD
 
-> 版本：v0.2 文档重构版
-> 最后更新：2026-04-26
+> 版本：v0.3 当前实现同步版
+> 最后更新：2026-04-29
 
 ## 一、产品概述
 
@@ -71,12 +71,12 @@
 
 主要屏幕：
 
-1. Onboarding
-2. Today
-3. Focus
-4. Break
-5. Tasks
-6. Insights
+1. Today
+2. Focus
+3. Break
+4. Tasks
+5. Insights
+6. Settings
 
 主底部导航：
 
@@ -88,6 +88,7 @@
 
 - `Focus` 和 `Break` 是沉浸式流程页面，不属于常驻底部 Tab
 - `Settings` 是次级入口，不作为主产品导航的一部分
+- Onboarding 目前未实现；首次体验暂由默认教程任务承担
 
 ## 六、用户故事
 
@@ -177,8 +178,17 @@ US-22: 作为用户，我希望能用全局快捷键快速开始、暂停或继�
 ### 6. Settings
 
 - 专注时长、短休、长休、长休间隔
-- 通知开关
-- 主题与无障碍设置作为后续扩展
+- 主题：System / Light / Dark
+- 语言：System / English / 中文
+- Reduced motion
+- 通知开关属于后续扩展，目前未实现
+
+### 7. Localization
+
+- UI 文案支持 English 和中文
+- Settings 中支持跟随系统语言
+- 用户创建的任务标题和描述不翻译
+- 旧语言值 `zh-Hans` 迁移为 `zh-CN`
 
 ## 九、数据模型
 
@@ -260,9 +270,9 @@ interface Settings {
   shortBreakDuration: number;
   longBreakDuration: number;
   longBreakInterval: number;
-  notificationsEnabled: boolean;
   theme: 'light' | 'dark' | 'system';
   reducedMotion: boolean;
+  language: 'system' | 'en' | 'zh-CN';
 }
 ```
 
@@ -288,3 +298,15 @@ MVP 达标时应满足：
 - 用户可以快速添加任务并安排今日计划
 - 所有关键数据本地持久化
 - 用户能在 `Insights` 中看到基础复盘信息
+- 中英文主要 UI 文案完整切换
+- 发布前 QA checklist 可逐项核对
+
+## 十二、当前已知下一步
+
+优先处理：
+
+- 后台 / 锁屏计时体验和本地通知
+- Today 每日目标算法，避免硬编码目标造成误解
+- Insights 指标解释和图表可读性
+- 任务编辑、删除、归档恢复
+- 集中式数据迁移

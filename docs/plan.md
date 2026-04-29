@@ -1,80 +1,57 @@
 # One Tomato 开发计划
 
-> 以 Focus-first MVP 为核心的迭代路线图
+> 当前项目已经完成 Focus-first MVP 的主要闭环。本文记录后续路线和优先级。
 
 ## 一、路线总览
 
 ```text
-v0.1 → v0.2 → v0.3 → v1.0
-MVP   增强   打磨   桌面强化
+v0.1        → v0.2             → v0.3       → v1.0
+已完成闭环   真机与发布前打磨   增强体验     桌面强化
 ```
 
-## 二、v0.1 · Focus-first MVP
+## 二、v0.1 · Focus-first MVP 状态
 
-目标：
+已完成：
 
-- 建立 `Today → Focus → Break → Tasks → Insights` 的最小可用闭环
-- 优先把“计划今天并开始当前专注”做顺
+- `Today → Focus → Break → Tasks → Insights` 主闭环
+- Settings
+- Light / Dark / System theme
+- System / English / 中文
+- AsyncStorage 持久化
+- Active timer 恢复
+- 基础 Insights
+- EAS 构建配置
+- 发布前 checklist 和视觉 QA checklist
 
-### Day 1
+仍需回归：
 
-- Initialize Expo project
-- Set up navigation
-- Set up design tokens
-- Implement TodayScreen static UI
-- Implement CurrentTaskCard
-- Implement DailyProgress
-- Implement StartTomatoButton
-- Implement basic Tasks sample data
+- 语言切换真机表现
+- 小屏布局
+- 旧 `zh-Hans` 设置迁移
+- Focus / Break 后台恢复
 
-### Day 2
+## 三、v0.2 · 发布前打磨
 
-- Implement usePomodoro
-- Implement FocusScreen
-- Implement Pause / Resume
-- Implement InterruptionModal basic UI
-- Implement BreakScreen
-- Implement Focus → Break flow
+优先级最高：
 
-### Day 3
+1. 提交当前语言文件拆分和中文调整。
+2. 更新并执行 `visual-qa-checklist.md`。
+3. 补 AppState 前后台校准。
+4. 增加 Focus / Break 完成本地通知。
+5. 修正 Today daily goal 的硬编码策略。
+6. 完善 Insights 指标说明和图表口径。
+7. 更新应用商店元信息、隐私说明和截图。
 
-- Implement useTasks
-- Implement QuickAddInput
-- Implement TasksScreen
-- Implement AsyncStorage persistence
-- Implement Basic Insights
-- Integrate Today → Focus → Break → Insights
+## 四、v0.3 · 核心增强
 
-### v0.1 交付清单
-
-- Today screen
-- Current task card
-- Start Tomato flow
-- Focus timer
-- Pause / Resume
-- Interruption logging
-- Break screen
-- Quick task add
-- Local persistence
-- Basic Insights
-
-## 三、v0.2 · 核心增强
-
-- Task states
-- Planning accuracy
-- Best focus time
-- Weekly rhythm
-- Custom Pomodoro durations
-- Better notifications
-
-## 四、v0.3 · 体验打磨
-
-- UI polish
-- Motion polish
-- Empty states
-- Accessibility
-- Reduced motion
-- Dark mode
+- 任务编辑
+- 删除任务
+- 归档与恢复
+- 可配置每日目标
+- 更完整的 tutorial todo
+- 更丰富的周/月趋势
+- 数据导出
+- 更完整的无障碍检查
 
 ## 五、v1.0 · 桌面强化
 
@@ -104,8 +81,8 @@ chore:    # 杂项
 
 补充说明：
 
-- 如果沿用旧组件命名，`TimerRing.tsx` 可以作为过渡文件存在，但目标命名应迁移为 `FocusTimerRing.tsx`
-- `useTimer` 作为旧实现命名可暂时保留，但新文档标准命名为 `usePomodoro`
+- 当前代码已经使用 `TodayScreen / FocusScreen / BreakScreen / TasksScreen / InsightsScreen`。
+- 新增页面和文档不要再使用 `TimerScreen / TodoScreen / StatsScreen` 作为产品级命名。
 
 ## 七、实施注意事项
 
@@ -116,3 +93,11 @@ chore:    # 杂项
 | 中断记录体验 | 先实现基本日志与非惩罚性文案，再做洞察分析 |
 | 本地持久化 | 优先保证任务、会话、设置可恢复 |
 | Insights 范围 | v0.1 只做基础复盘，避免一开始做成复杂 dashboard |
+
+## 八、发布前固定验证
+
+```bash
+npx tsc --noEmit
+npm test -- --runInBand
+git diff --check
+```

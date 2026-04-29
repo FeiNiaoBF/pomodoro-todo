@@ -204,12 +204,18 @@
 
 ## 八、屏幕规范
 
-### 1. Onboarding
+### 1. Onboarding / Tutorial
 
 目标：
 
 - 建立温暖的产品第一印象
 - 帮用户选择适合自己的专注节奏
+
+当前状态：
+
+- 独立 Onboarding 尚未实现。
+- 当前首次体验通过默认教程任务说明 Today、Tasks、Focus 和 Insights。
+- 默认任务必须参与本地化，不能只显示英文。
 
 核心内容：
 
@@ -330,8 +336,53 @@
 - 易扫读
 - 不做密集 dashboard
 - 使用友善反馈语言
+- 每个数据卡片应让用户知道“这个数字来自哪里”
+- 图表标题和辅助说明必须解释统计口径
 
-## 九、UI 质量检查清单
+### 7. Settings
+
+目标：
+
+- 让用户调整节奏、主题和语言
+- 不把设置页做成复杂控制台
+
+核心内容：
+
+- Focus duration
+- Short break
+- Long break
+- Long break interval
+- Theme: System / Light / Dark
+- Language: System / English / 中文
+- Reduced motion
+
+规则：
+
+- 设置项变更应持久化。
+- 语言切换后主要 UI 立即更新。
+- `zh-Hans` 不作为用户可见语言名称。
+
+## 九、文案原则
+
+One Tomato 的语气应平静、直接、支持用户行动。
+
+推荐：
+
+- `稍后继续`
+- `今天`
+- `待安排`
+- `已完成`
+- `当前专注`
+- `完成一轮后会自动增加`
+
+避免：
+
+- AI 感强的泛泛鼓励
+- 过度拟人
+- 惩罚、失败、落后、打卡压力
+- 没有数据来源解释的结论式评价
+
+## 十、UI 质量检查清单
 
 - 首屏是否为 `Today`，而不是 timer 主界面
 - 主导航是否仅为 `Today | Tasks | Insights`
@@ -342,3 +393,5 @@
 - 是否将 timer 限定在 Focus / Break 内部表达
 - 是否支持 reduced motion
 - 是否避免惩罚式文案与失败感
+- 中英文按钮是否在小屏手机上不截断、不重叠
+- Insights 图表是否有清楚标题、单位和统计口径

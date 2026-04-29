@@ -5,12 +5,12 @@
 ## 一、主流程
 
 ```text
-Onboarding → Today → Focus → Break → Today / Focus → Insights
+Today → Focus → Break → Today / Focus → Insights
 ```
 
 说明：
 
-- Onboarding 仅首次进入或重新设置节奏时出现
+- 独立 Onboarding 尚未实现；首次体验由默认教程任务承担
 - `Today` 是日常入口
 - `Focus` 与 `Break` 是主循环的沉浸式页面
 - `Insights` 用于复盘而不是实时施压
@@ -31,14 +31,15 @@ Today | Tasks | Insights
 ```text
 Today → Start Tomato → Focus
 Today → Up Next item → Make Current Focus
-Today → Add Task → TaskEditSheet
+Today → Add Task / empty state action → Tasks
+Today → Settings → Settings
 ```
 
 说明：
 
 - `Start Tomato` 是 Today 的主要 CTA
 - `Up Next` 最多展示两项，作为下一步候选而非完整任务列表
-- 从 Today 添加任务时，应尽量轻量，不打断主流程
+- 从 Today 添加任务应进入 Tasks 的轻量添加流程
 
 ## 四、Focus Flows
 
@@ -46,6 +47,7 @@ Today → Add Task → TaskEditSheet
 Focus → Pause → Resume
 Focus → Interrupted → InterruptionModal → Resume / Save for later
 Focus → Complete → Start Break → Break
+Focus → Save for later → Today / Tasks
 ```
 
 说明：
@@ -71,9 +73,11 @@ Break complete → Start Next Tomato / Return Today
 
 ```text
 Tasks → Quick Add → Backlog / Today
-Tasks → Swipe right → Move to Today
-Tasks → Swipe left → Archive
-Tasks → Tap card → TaskEditSheet
+Tasks → Today / Backlog / Completed tab switch
+Tasks → Set current focus
+Tasks → Mark done
+Tasks → Archive
+Tasks → Estimate tomatoes with +/- controls
 ```
 
 说明：
@@ -93,3 +97,24 @@ Insights → Planning accuracy
 
 - Insights 应优先帮助用户理解习惯，而不是被动承受绩效展示
 - 重点是节奏反馈、最佳专注时段、计划准确率与中断分布
+
+当前状态：
+
+- 已有基础 Insights 页面。
+- 日详情 modal 尚未实现。
+- 下一步重点是明确每个指标和图表的统计口径。
+
+## 八、Settings Flows
+
+```text
+Settings → Change durations → Persist
+Settings → Change theme → Apply immediately + Persist
+Settings → Change language → Apply immediately + Persist
+Settings → Reset defaults → Restore default settings
+```
+
+说明：
+
+- 语言支持 System / English / 中文。
+- System language 需要跟随 OS 语言。
+- 旧 `zh-Hans` 应迁移为 `zh-CN`，但不在 UI 中展示。

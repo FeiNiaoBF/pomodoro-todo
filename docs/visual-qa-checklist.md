@@ -1,6 +1,6 @@
 # One Tomato Visual QA Checklist
 
-Use this checklist on a real device or simulator before adding more product behavior. Keep the pass focused on readability, theme correctness, persistence, and interaction quality.
+Use this checklist on a real device or simulator before release or before adding more product behavior. Keep the pass focused on readability, theme correctness, localization, persistence, and interaction quality.
 
 ## Pre-Flight
 
@@ -8,6 +8,7 @@ Use this checklist on a real device or simulator before adding more product beha
 - Test on at least one small phone viewport and one larger phone viewport.
 - Start with a clean app install when checking first-run behavior.
 - Repeat the theme checks after closing and reopening the app.
+- Run `npx tsc --noEmit`, `npm test -- --runInBand`, and `git diff --check` before marking the QA pass complete.
 
 ## Light Theme
 
@@ -43,10 +44,12 @@ Use this checklist on a real device or simulator before adding more product beha
 - Confirm bottom navigation labels switch correctly between Today / Tasks / Insights and 今天 / 任务 / 回顾.
 - Confirm tomato progress copy switches correctly, including normal progress, no-estimate copy, and over-completed copy.
 - Confirm task state labels switch correctly, including Current focus, Saved for later, Today, Backlog, Done, and Archived equivalents.
+- Confirm first-run tutorial/default tasks are localized in both English and Mainland Chinese.
 - Create a task in English, switch to Mainland Chinese, and confirm the user-created task title is not translated.
 - Create a task in Mainland Chinese, switch to English, and confirm the user-created task title is not translated.
 - In Mainland Chinese mode, confirm weekly rhythm labels are distinct: 一 二 三 四 五 六 日.
 - In English mode, confirm weekly rhythm labels remain distinct enough to identify the week positions and do not collapse into seven identical labels.
+- If upgrading from a build that stored `zh-Hans`, confirm it migrates to Mainland Chinese / `zh-CN`.
 - On a small phone viewport, confirm English button labels do not truncate or overlap.
 - On a small phone viewport, confirm Mainland Chinese button labels do not truncate or overlap.
 
@@ -71,6 +74,7 @@ Use this checklist on a real device or simulator before adding more product beha
 - Confirm the progress card, current task card, Start Tomato button, and Up Next cards use the active theme.
 - Complete more tomatoes than the daily goal and confirm the card does not show ratios like "9/8".
 - Confirm over-goal progress shows completed count plus calm goal context.
+- Confirm a clean new install does not show misleading completed-today progress before any completed Focus session.
 - Confirm very short or numeric current task titles still have enough surrounding context.
 - Confirm Up Next tasks with zero completed tomatoes show unfilled tomato dots.
 - Tap Start Tomato and verify the app enters Focus without layout shift.
@@ -87,6 +91,7 @@ Use this checklist on a real device or simulator before adding more product beha
 - Verify Pause / Resume, Interrupted, Save for later, and any enabled dev timer control are at least 44px tall.
 - Confirm the breathing background remains soft and does not obscure the timer.
 - Pause and resume once to confirm visual state remains stable.
+- Tap Save for later, return to the task, and confirm the remaining time is not unexpectedly reset.
 - Confirm accidental swipe-back is disabled and Save for later remains the safe exit path.
 - On Android, confirm hardware back does not leave an active Focus session; use Save for later instead.
 
@@ -113,6 +118,18 @@ Use this checklist on a real device or simulator before adding more product beha
 
 - Confirm the hero focus-time card, metric cards, task progress bar, and weekly rhythm bars use the active theme.
 - Confirm supportive copy remains readable and not dashboard-dense.
+- Confirm every metric has enough context to understand what it represents.
+- Confirm Today Summary explains Focus time, Completed tomatoes, Completed tasks, and Interruptions.
+- Confirm Weekly Focus chart labels are distinct in English and Mainland Chinese.
+- Confirm Weekly Focus rounded bars remain readable on small screens.
+- Confirm Planning Accuracy clearly compares Planned and Actual tomatoes.
+- Confirm Planning Accuracy explains what planned tomatoes and actual completed tomatoes mean.
+- Confirm Task Progress is clamped to 0-100%.
+- Confirm Interruption bubble cluster is readable and supported by a ranked list.
+- Confirm Best Focus Time shows an honest learning state when fewer than 3 completed focus sessions exist.
+- Confirm dark mode charts remain readable.
+- Confirm Mainland Chinese Insights copy does not overflow on small screens.
+- Confirm today focus time increases only from actual focus work, not from idle time, break time, or merely opening Insights.
 - Check that empty or low-data states still feel calm.
 - In Chinese locale, confirm weekly rhythm labels show distinct values: 一 二 三 四 五 六 日.
 - In English locale, confirm weekly rhythm labels do not collapse into seven identical labels.
@@ -163,4 +180,5 @@ Use this checklist on a real device or simulator before adding more product beha
 - Start and complete a focus session, close and reopen, then confirm Insights reflects the completed tomato.
 - Log an interruption, close and reopen, then confirm the interruption count persists.
 - Change theme and duration settings, close and reopen, then confirm settings persist.
+- Change language, close and reopen, then confirm language persists.
 - Start a running focus timer, close the app long enough for wall-clock recovery, reopen, and confirm recovery behavior is sane.
