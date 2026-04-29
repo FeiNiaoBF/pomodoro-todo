@@ -6,165 +6,86 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  ComparisonBars,
+  InterruptionBubbleCluster,
+  RankedInterruptionList,
+  TaskProgressBar,
+  TimeBlockBars,
+  WeeklyRoundedBarChart,
+} from '../components/insights/InsightsCharts';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { usePomodoro } from '../hooks/usePomodoro';
 import { useTasks } from '../hooks/useTasks';
 import { useTranslation } from '../hooks/useTranslation';
-import { tokens } from '../theme/tokens';
 import { TranslationKey } from '../i18n/translations';
-import { InterruptionReason } from '../types/pomodoro';
-import { getVisibleBarPercent } from '../utils/chartScales';
-import { getWeekdayLabel } from '../utils/dateLabels';
-import { getTaskDisplayTitle } from '../utils/taskDisplay';
-import { getTaskStateLabel } from '../utils/taskLabels';
-import { formatTomatoProgress } from '../utils/tomatoProgress';
-
-const INTERRUPTION_REASONS: InterruptionReason[] = [
-  'phone',
-  'message',
-  'people',
-  'self_distraction',
-  'other',
-];
-
-function isSameDay(timestamp: number, reference: Date) {
-  const date = new Date(timestamp);
-
-  return (
-    date.getFullYear() === reference.getFullYear() &&
-    date.getMonth() === reference.getMonth() &&
-    date.getDate() === reference.getDate()
-  );
-}
-
-function formatFocusTime(seconds: number, language: 'en' | 'zh-CN') {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-
-  if (language === 'zh-CN') {
-    return hours > 0 ? `${hours}小时 ${minutes}分钟` : `${minutes}分钟`;
-  }
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
-
-  return `${minutes}m`;
-}
-
-function shouldUseGentleFocusCopy(title?: string) {
-  const trimmedTitle = title?.trim() ?? '';
-
-  return trimmedTitle.length < 3 || /^\d+$/.test(trimmedTitle);
-}
-
-function getReasonLabelKey(reason: InterruptionReason): TranslationKey {
-  switch (reason) {
-    case 'phone':
-      return 'insights.reason.phone';
-    case 'message':
-      return 'insights.reason.message';
-    case 'people':
-      return 'insights.reason.people';
-    case 'self_distraction':
-      return 'insights.reason.self';
-    default:
-      return 'insights.reason.other';
-  }
-}
+import { tokens } from '../theme/tokens';
+import {
+  formatFocusTime,
+  getBestFocusTimeBlock,
+  getInterruptionBreakdown,
+  getLocalizedInterruptionLabels,
+  getLocalizedTimeBlockLabels,
+  getPlanningAccuracy,
+  getTaskProgress,
+  getTodaySummary,
+  getWeeklyFocusTrend,
+} from '../utils/insightsData';
 
 export function InsightsScreen() {
   const theme = useAppTheme();
   const { language, t } = useTranslation();
   const { completedSessions, interruptions } = usePomodoro();
-  const { completedTasks, tasks, todayTasks, currentTask } = useTasks();
+  const { completedTasks, todayTasks } = useTasks();
 
   const insights = useMemo(() => {
-    const today = new Date();
-    const knownTaskIds = new Set(tasks.map(task => task.id));
-    const focusSessions = completedSessions.filter(
-      session =>
-        session.mode === 'focus' &&
-        session.status === 'completed' &&
-        knownTaskIds.has(session.taskId)
-    );
-    const focusSessionsToday = focusSessions.filter(session =>
-      isSameDay(session.startedAt, today)
-    );
-    const interruptionsToday = interruptions.filter(interruption =>
-      isSameDay(interruption.createdAt, today)
-    );
-    const completedTodayTasks = completedTasks.filter(task =>
-      task.completedAt ? isSameDay(task.completedAt, today) : false
-    );
-    const todayTaskIds = new Set(todayTasks.map(task => task.id));
-    const todayPlanTasks = [
-      ...todayTasks,
-      ...completedTodayTasks.filter(task => !todayTaskIds.has(task.id)),
-    ];
-    const plannedTaskCount = todayTasks.length + completedTodayTasks.length;
-    const taskProgress = plannedTaskCount > 0
-      ? Math.min(100, Math.round((completedTodayTasks.length / plannedTaskCount) * 100))
-      : 0;
-    const focusTimeToday = focusSessionsToday.reduce(
-      (total, session) => total + session.actualDuration,
-      0
-    );
-
-    const weeklyRhythm = Array.from({ length: 7 }, (_, index) => {
-      const day = new Date(today);
-      day.setDate(today.getDate() - (6 - index));
-
-      const sessions = focusSessions.filter(session => isSameDay(session.startedAt, day));
-      const focusSeconds = sessions.reduce(
-        (total, session) => total + session.actualDuration,
-        0
-      );
-
-      return {
-        key: day.toISOString(),
-        label: getWeekdayLabel(day, language === 'zh-CN' ? 'zh-CN' : 'en-US'),
-        count: sessions.length,
-        focusSeconds,
-      };
-    });
-
-    const interruptionBreakdown = INTERRUPTION_REASONS.map(reason => ({
-      reason,
-      count: interruptionsToday.filter(interruption => interruption.reason === reason).length,
-    }));
+    const now = new Date();
 
     return {
-      focusTimeToday,
-      completedTomatoes: focusSessionsToday.length,
-      completedTasks: completedTodayTasks.length,
-      plannedTaskCount,
-      currentStreak: focusSessionsToday.length > 0 ? t('insights.dayStreak') : t('insights.starting'),
-      interruptionCount: interruptionsToday.length,
-      taskProgress,
-      weeklyRhythm,
-      weeklyTomatoes: weeklyRhythm.reduce((total, day) => total + day.count, 0),
-      weeklyFocusSeconds: weeklyRhythm.reduce((total, day) => total + day.focusSeconds, 0),
-      interruptionBreakdown,
-      taskDetails: todayPlanTasks.map(task => ({
-        id: task.id,
-        title: getTaskDisplayTitle(task, language),
-        stateLabel: getTaskStateLabel(task.state, language),
-        tomatoProgress: formatTomatoProgress(
-          task.completedTomatoes,
-          task.estimatedTomatoes,
-          language
-        ),
-      })),
+      todaySummary: getTodaySummary(
+        completedSessions,
+        completedTasks,
+        interruptions,
+        now
+      ),
+      weeklyFocus: getWeeklyFocusTrend(completedSessions, language, now),
+      planningAccuracy: getPlanningAccuracy(
+        todayTasks,
+        completedTasks,
+        completedSessions,
+        now
+      ),
+      taskProgress: getTaskProgress(todayTasks, completedTasks, now),
+      interruptionBreakdown: getInterruptionBreakdown(interruptions, now),
+      bestFocusTime: getBestFocusTimeBlock(completedSessions),
+      interruptionLabels: getLocalizedInterruptionLabels(language),
+      timeBlockLabels: getLocalizedTimeBlockLabels(language),
     };
-  }, [completedSessions, completedTasks, interruptions, language, t, tasks, todayTasks]);
+  }, [completedSessions, completedTasks, interruptions, language, todayTasks]);
 
-  const maxWeeklySeconds = Math.max(1, ...insights.weeklyRhythm.map(day => day.focusSeconds));
-  const maxInterruptionCount = Math.max(1, ...insights.interruptionBreakdown.map(item => item.count));
-  const currentTaskTitle = currentTask ? getTaskDisplayTitle(currentTask, language) : '';
-  const heroCopy = currentTask && !shouldUseGentleFocusCopy(currentTaskTitle)
-    ? t('insights.currentHero', { title: currentTaskTitle })
-    : t('insights.gentleHero');
+  const planningCopy = getPlanningCopy(
+    insights.planningAccuracy.status,
+    Math.abs(insights.planningAccuracy.difference),
+    t
+  );
+  const taskProgressCopy = insights.taskProgress.totalTasks === 0
+    ? t('insights.taskProgressEmpty')
+    : insights.taskProgress.exceededPlan
+      ? t('insights.taskProgressBeyond')
+      : t('insights.taskProgressCopy', {
+          done: insights.taskProgress.completedTasks,
+          total: insights.taskProgress.totalTasks,
+        });
+  const bestFocusBlock = insights.bestFocusTime.strongestBlock?.block;
+  const bestFocusBlockName = bestFocusBlock
+    ? language === 'en'
+      ? insights.timeBlockLabels[bestFocusBlock].toLowerCase()
+      : insights.timeBlockLabels[bestFocusBlock]
+    : '';
+  const bestFocusCopy = insights.bestFocusTime.hasEnoughData && bestFocusBlock
+    ? t('insights.bestFocusCopy', { block: bestFocusBlockName })
+    : t('insights.bestFocusInsufficient');
+  const hasInterruptions = insights.todaySummary.interruptions > 0;
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -186,227 +107,187 @@ export function InsightsScreen() {
             },
           ]}
         >
-          <Text style={[styles.heroLabel, { color: theme.colors.primaryHover }]}>{t('insights.today')}</Text>
-          <Text style={[styles.heroValue, { color: theme.colors.text }]}>
-            {formatFocusTime(insights.focusTimeToday, language)}
+          <Text style={[styles.kicker, { color: theme.colors.primaryHover }]}>
+            {t('insights.todaySummary')}
           </Text>
-          <Text style={[styles.heroHint, { color: theme.colors.muted }]}>{t('insights.focusTimeHint')}</Text>
-          <Text style={[styles.heroText, { color: theme.colors.muted }]}>{heroCopy}</Text>
-        </View>
+          <Text style={[styles.heroMetricLabel, { color: theme.colors.muted }]}>
+            {t('insights.focusTime')}
+          </Text>
+          <Text style={[styles.heroValue, { color: theme.colors.text }]}>
+            {formatFocusTime(insights.todaySummary.focusSeconds, language)}
+          </Text>
+          <Text style={[styles.heroExplanation, { color: theme.colors.muted }]}>
+            {t('insights.focusTimeExplanation')}
+          </Text>
 
-        <View style={styles.metricsGrid}>
-          <MetricCard
-            label={t('insights.completedTomatoes')}
-            value={String(insights.completedTomatoes)}
-            hint={t('insights.completedTomatoesHint')}
-          />
-          <MetricCard
-            label={t('insights.currentStreak')}
-            value={insights.currentStreak}
-            hint={t('insights.currentStreakHint')}
-          />
-          <MetricCard
-            label={t('insights.interruptions')}
-            value={String(insights.interruptionCount)}
-            hint={t('insights.interruptionsHint')}
-          />
-        </View>
-
-        <View
-          style={[
-            styles.sectionCard,
-            {
-              backgroundColor: theme.colors.cardTranslucent,
-              borderColor: theme.colors.outline,
-            },
-          ]}
-        >
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('insights.planChart')}</Text>
-            <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>
-              {t('insights.planChartMeta', {
-                done: insights.completedTasks,
-                planned: insights.plannedTaskCount,
-              })}
-            </Text>
+          <View style={styles.heroMetricGrid}>
+            <HeroMetric
+              label={t('insights.completedTomatoes')}
+              value={String(insights.todaySummary.completedTomatoes)}
+              hint={t('insights.completedTomatoesHint')}
+            />
+            <HeroMetric
+              label={t('insights.completedTasks')}
+              value={String(insights.todaySummary.completedTasks)}
+              hint={t('insights.completedTasksHint')}
+            />
+            <HeroMetric
+              label={t('insights.interruptions')}
+              value={String(insights.todaySummary.interruptions)}
+              hint={t('insights.interruptionsHint')}
+            />
           </View>
-          <View style={styles.planRow}>
-            <Text style={[styles.planLabel, { color: theme.colors.muted }]}>{t('insights.done')}</Text>
-            <View style={[styles.progressTrack, { backgroundColor: theme.colors.surfaceSoft }]}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${insights.taskProgress}%`,
-                    backgroundColor: theme.colors.primary,
-                  },
-                ]}
+        </View>
+
+        <SectionCard>
+          <SectionHeader
+            title={t('insights.weeklyFocus')}
+            meta={t('insights.weeklyFocusCopy')}
+          />
+          <WeeklyRoundedBarChart
+            days={insights.weeklyFocus}
+            legend={t('insights.weeklyFocusLegend')}
+            theme={theme}
+          />
+        </SectionCard>
+
+        <SectionCard isStrong>
+          <SectionHeader
+            title={t('insights.planningAccuracy')}
+            meta={t('insights.planningSummary', {
+              planned: insights.planningAccuracy.plannedTomatoes,
+              actual: insights.planningAccuracy.actualTomatoes,
+            })}
+          />
+          <ComparisonBars
+            plannedLabel={t('insights.planned')}
+            actualLabel={t('insights.actual')}
+            planned={insights.planningAccuracy.plannedTomatoes}
+            actual={insights.planningAccuracy.actualTomatoes}
+            theme={theme}
+          />
+          <Text style={[styles.sectionLead, { color: theme.colors.text }]}>{planningCopy}</Text>
+          <Text style={[styles.sectionCopy, { color: theme.colors.muted }]}>
+            {t('insights.planningHelp')}
+          </Text>
+        </SectionCard>
+
+        <SectionCard>
+          <SectionHeader
+            title={t('insights.taskProgressTitle')}
+            meta={`${insights.taskProgress.percentage}%`}
+          />
+          <Text style={[styles.sectionLead, { color: theme.colors.text }]}>
+            {taskProgressCopy}
+          </Text>
+          <TaskProgressBar percentage={insights.taskProgress.percentage} theme={theme} />
+        </SectionCard>
+
+        <SectionCard>
+          <SectionHeader
+            title={t('insights.interruptionBreakdown')}
+            meta={t('insights.interruptionSupport')}
+          />
+          {hasInterruptions ? (
+            <View style={styles.interruptionContent}>
+              <InterruptionBubbleCluster
+                items={insights.interruptionBreakdown}
+                labels={insights.interruptionLabels}
+                theme={theme}
+              />
+              <RankedInterruptionList
+                items={insights.interruptionBreakdown}
+                labels={insights.interruptionLabels}
+                theme={theme}
               />
             </View>
-            <Text style={[styles.planValue, { color: theme.colors.text }]}>{insights.taskProgress}%</Text>
-          </View>
-          <Text style={[styles.sectionText, { color: theme.colors.muted }]}>
-            {insights.plannedTaskCount === 0
-              ? t('insights.manyTasksPlan', { count: 0 })
-              : insights.plannedTaskCount === 1
-                ? t('insights.oneTaskPlan')
-                : t('insights.manyTasksPlan', { count: insights.plannedTaskCount })}
-          </Text>
-        </View>
-
-        <View
-          style={[
-            styles.sectionCard,
-            {
-              backgroundColor: theme.colors.cardTranslucent,
-              borderColor: theme.colors.outline,
-            },
-          ]}
-        >
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('insights.taskDetails')}</Text>
-            <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>
-              {t('insights.taskDetailsMeta', { count: insights.taskDetails.length })}
-            </Text>
-          </View>
-          {insights.taskDetails.length === 0 ? (
-            <Text style={[styles.sectionText, { color: theme.colors.muted }]}>
-              {t('insights.noTaskDetails')}
-            </Text>
           ) : (
-            <View style={styles.taskDetailList}>
-              {insights.taskDetails.map(task => (
-                <View key={task.id} style={[styles.taskDetailRow, { borderColor: theme.colors.outline }]}>
-                  <View style={styles.taskDetailCopy}>
-                    <Text style={[styles.taskDetailTitle, { color: theme.colors.text }]} numberOfLines={2}>
-                      {task.title}
-                    </Text>
-                    <Text style={[styles.taskDetailMeta, { color: theme.colors.muted }]}>
-                      {task.tomatoProgress}
-                    </Text>
-                  </View>
-                  <View style={[styles.taskDetailPill, { backgroundColor: theme.colors.surfaceSoft }]}>
-                    <Text style={[styles.taskDetailPillText, { color: theme.colors.primaryHover }]}>
-                      {task.stateLabel}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-
-        <View
-          style={[
-            styles.sectionCard,
-            {
-              backgroundColor: theme.colors.cardTranslucent,
-              borderColor: theme.colors.outline,
-            },
-          ]}
-        >
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('insights.weeklyFocus')}</Text>
-            <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>
-              {t('insights.weeklyFocusMeta', {
-                tomatoes: insights.weeklyTomatoes,
-                minutes: formatFocusTime(insights.weeklyFocusSeconds, language),
-              })}
-            </Text>
-          </View>
-          <View style={styles.rhythmRow}>
-            {insights.weeklyRhythm.map(day => (
-              <View key={day.key} style={styles.rhythmItem}>
-                <View style={[styles.rhythmBarTrack, { backgroundColor: theme.colors.surfaceSoft }]}>
-                  <View
-                    style={[
-                      styles.rhythmBar,
-                      {
-                        height: `${getVisibleBarPercent(day.focusSeconds, maxWeeklySeconds)}%`,
-                        backgroundColor: theme.colors.accent,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={[styles.rhythmCount, { color: theme.colors.text }]}>{day.count}</Text>
-                <Text style={[styles.rhythmLabel, { color: theme.colors.muted }]}>{day.label}</Text>
-              </View>
-            ))}
-          </View>
-          <Text style={[styles.sectionText, { color: theme.colors.muted }]}>
-            {t('insights.simpleRead')}
-          </Text>
-        </View>
-
-        <View
-          style={[
-            styles.sectionCard,
-            {
-              backgroundColor: theme.colors.cardTranslucent,
-              borderColor: theme.colors.outline,
-            },
-          ]}
-        >
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('insights.interruptionChart')}</Text>
-            <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>
-              {t('insights.interruptionChartMeta')}
-            </Text>
-          </View>
-          {insights.interruptionCount === 0 ? (
-            <Text style={[styles.sectionText, { color: theme.colors.muted }]}>
+            <Text style={[styles.sectionCopy, { color: theme.colors.muted }]}>
               {t('insights.noInterruptions')}
             </Text>
-          ) : (
-            <View style={styles.interruptionList}>
-              {insights.interruptionBreakdown.map(item => (
-                <View key={item.reason} style={styles.interruptionRow}>
-                  <Text style={[styles.interruptionLabel, { color: theme.colors.text }]}>
-                    {t(getReasonLabelKey(item.reason))}
-                  </Text>
-                  <View style={[styles.interruptionTrack, { backgroundColor: theme.colors.surfaceSoft }]}>
-                    <View
-                      style={[
-                        styles.interruptionFill,
-                        {
-                          width: `${getVisibleBarPercent(item.count, maxInterruptionCount, 4)}%`,
-                          backgroundColor: theme.colors.primary,
-                        },
-                      ]}
-                    />
-                  </View>
-                  <Text style={[styles.interruptionValue, { color: theme.colors.muted }]}>
-                    {item.count}
-                  </Text>
-                </View>
-              ))}
-            </View>
           )}
-        </View>
+        </SectionCard>
+
+        <SectionCard>
+          <SectionHeader
+            title={t('insights.bestFocusTime')}
+            meta={bestFocusCopy}
+          />
+          <TimeBlockBars
+            blocks={insights.bestFocusTime.blocks}
+            labels={insights.timeBlockLabels}
+            theme={theme}
+          />
+        </SectionCard>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function MetricCard({ label, value, hint }: { label: string; value: string; hint: string }) {
+function getPlanningCopy(
+  status: 'over' | 'under' | 'matched' | 'insufficient',
+  difference: number,
+  t: (key: TranslationKey, replacements?: Record<string, string | number>) => string
+) {
+  if (status === 'over') {
+    return t('insights.planningOver', { count: difference });
+  }
+
+  if (status === 'under') {
+    return t('insights.planningUnder', { count: difference });
+  }
+
+  if (status === 'matched') {
+    return t('insights.planningMatched');
+  }
+
+  return t('insights.planningInsufficient');
+}
+
+function HeroMetric({ label, value, hint }: { label: string; value: string; hint: string }) {
   const theme = useAppTheme();
-  const isLongValue = value.length > 6;
+
+  return (
+    <View style={styles.heroMetric}>
+      <Text style={[styles.heroMetricValue, { color: theme.colors.text }]}>{value}</Text>
+      <Text style={[styles.heroMetricName, { color: theme.colors.text }]}>{label}</Text>
+      <Text style={[styles.heroMetricHint, { color: theme.colors.muted }]}>{hint}</Text>
+    </View>
+  );
+}
+
+function SectionCard({
+  children,
+  isStrong = false,
+}: {
+  children: React.ReactNode;
+  isStrong?: boolean;
+}) {
+  const theme = useAppTheme();
 
   return (
     <View
       style={[
-        styles.metricCard,
+        styles.sectionCard,
+        isStrong && styles.strongSectionCard,
         {
-          backgroundColor: theme.colors.cardTranslucent,
+          backgroundColor: isStrong ? theme.colors.surface : theme.colors.cardTranslucent,
           borderColor: theme.colors.outline,
         },
       ]}
     >
-      <Text style={[styles.metricValue, isLongValue && styles.metricValueCompact, { color: theme.colors.text }]}>
-        {value}
-      </Text>
-      <Text style={[styles.metricLabel, { color: theme.colors.text }]}>{label}</Text>
-      <Text style={[styles.metricHint, { color: theme.colors.muted }]}>{hint}</Text>
+      {children}
+    </View>
+  );
+}
+
+function SectionHeader({ title, meta }: { title: string; meta: string }) {
+  const theme = useAppTheme();
+
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{title}</Text>
+      <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>{meta}</Text>
     </View>
   );
 }
@@ -418,23 +299,21 @@ const styles = StyleSheet.create({
   },
   topBloom: {
     position: 'absolute',
-    top: -58,
-    right: -44,
-    width: 210,
-    height: 210,
-    borderRadius: 105,
-    backgroundColor: tokens.colors.bloomTop,
+    top: -64,
+    right: -52,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
     opacity: 0.78,
   },
   bottomBloom: {
     position: 'absolute',
     bottom: 82,
-    left: -56,
-    width: 170,
-    height: 170,
-    borderRadius: 85,
-    backgroundColor: tokens.colors.bloomBottom,
-    opacity: 0.7,
+    left: -64,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    opacity: 0.68,
   },
   content: {
     paddingHorizontal: 20,
@@ -444,290 +323,113 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: 8,
+    paddingBottom: 2,
   },
   title: {
     fontSize: tokens.typography.title,
     lineHeight: 38,
-    color: tokens.colors.text,
     fontFamily: tokens.typography.headingFamily,
     fontWeight: '700',
   },
   subtitle: {
     fontSize: 14,
-    lineHeight: 20,
-    color: tokens.colors.muted,
+    lineHeight: 21,
     fontFamily: tokens.typography.bodyFamily,
   },
   heroCard: {
-    backgroundColor: tokens.colors.surface,
     borderRadius: tokens.radius.hero,
     padding: 24,
     borderWidth: 1,
-    borderColor: tokens.colors.outline,
+    gap: 10,
     ...tokens.shadow,
   },
-  heroLabel: {
+  kicker: {
     fontSize: 13,
     lineHeight: 18,
-    color: tokens.colors.primaryHover,
-    fontFamily: tokens.typography.bodyFamily,
+    fontFamily: tokens.typography.bodyBoldFamily,
     fontWeight: '700',
-    marginBottom: 10,
+  },
+  heroMetricLabel: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: tokens.typography.bodyMediumFamily,
+    fontWeight: '600',
   },
   heroValue: {
     fontSize: 46,
     lineHeight: 52,
-    color: tokens.colors.text,
     fontFamily: tokens.typography.headingFamily,
     fontWeight: '700',
-    marginBottom: 6,
   },
-  heroHint: {
+  heroExplanation: {
     fontSize: 13,
-    lineHeight: 18,
-    color: tokens.colors.muted,
-    fontFamily: tokens.typography.bodyFamily,
-    fontWeight: '700',
-    marginBottom: 12,
-  },
-  heroText: {
-    fontSize: 15,
-    lineHeight: 23,
-    color: tokens.colors.muted,
+    lineHeight: 19,
     fontFamily: tokens.typography.bodyFamily,
   },
-  metricsGrid: {
+  heroMetricGrid: {
+    marginTop: 8,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+    gap: 10,
   },
-  metricCard: {
-    flexBasis: '47%',
-    flexGrow: 1,
-    minHeight: 134,
-    borderRadius: tokens.radius.modal,
-    padding: 16,
-    backgroundColor: tokens.colors.cardTranslucent,
-    borderWidth: 1,
-    borderColor: tokens.colors.outline,
-    justifyContent: 'flex-start',
-    gap: 7,
+  heroMetric: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
   },
-  metricValue: {
-    fontSize: 28,
-    lineHeight: 34,
-    color: tokens.colors.text,
+  heroMetricValue: {
+    fontSize: 24,
+    lineHeight: 29,
     fontFamily: tokens.typography.headingFamily,
     fontWeight: '700',
   },
-  metricValueCompact: {
-    fontSize: 24,
-    lineHeight: 30,
-  },
-  metricLabel: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: tokens.colors.text,
-    fontFamily: tokens.typography.bodyFamily,
+  heroMetricName: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: tokens.typography.bodyBoldFamily,
     fontWeight: '700',
   },
-  metricHint: {
-    fontSize: 12,
-    lineHeight: 17,
-    color: tokens.colors.muted,
+  heroMetricHint: {
+    fontSize: 11,
+    lineHeight: 15,
     fontFamily: tokens.typography.bodyFamily,
   },
   sectionCard: {
     borderRadius: tokens.radius.modal,
     padding: 18,
-    backgroundColor: tokens.colors.cardTranslucent,
     borderWidth: 1,
-    borderColor: tokens.colors.outline,
-    gap: 14,
+    gap: 15,
+  },
+  strongSectionCard: {
+    padding: 20,
+    ...tokens.shadow,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: 12,
+    gap: 6,
   },
   sectionTitle: {
-    flex: 1,
-    fontSize: 20,
-    lineHeight: 26,
-    color: tokens.colors.text,
+    fontSize: 22,
+    lineHeight: 28,
     fontFamily: tokens.typography.headingFamily,
     fontWeight: '700',
   },
   sectionMeta: {
-    flexShrink: 1,
-    fontSize: 13,
-    lineHeight: 18,
-    color: tokens.colors.primaryHover,
-    fontFamily: tokens.typography.bodyFamily,
-    fontWeight: '700',
-    textAlign: 'right',
-  },
-  planRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  planLabel: {
-    minWidth: 42,
-    fontSize: 12,
-    lineHeight: 16,
-    color: tokens.colors.muted,
-    fontFamily: tokens.typography.bodyFamily,
-    fontWeight: '700',
-  },
-  planValue: {
-    minWidth: 42,
-    fontSize: 14,
-    lineHeight: 18,
-    color: tokens.colors.text,
-    textAlign: 'right',
-    fontFamily: tokens.typography.bodyBoldFamily,
-    fontWeight: '700',
-  },
-  progressTrack: {
-    flex: 1,
-    height: 14,
-    borderRadius: tokens.radius.pill,
-    backgroundColor: tokens.colors.surfaceSoft,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: tokens.radius.pill,
-    backgroundColor: tokens.colors.primary,
-  },
-  sectionText: {
     fontSize: 13,
     lineHeight: 19,
-    color: tokens.colors.muted,
+    fontFamily: tokens.typography.bodyBoldFamily,
+    fontWeight: '700',
+  },
+  sectionLead: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontFamily: tokens.typography.bodyBoldFamily,
+    fontWeight: '700',
+  },
+  sectionCopy: {
+    fontSize: 13,
+    lineHeight: 20,
     fontFamily: tokens.typography.bodyFamily,
   },
-  taskDetailList: {
-    gap: 0,
-  },
-  taskDetailRow: {
-    minHeight: 58,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  interruptionContent: {
     gap: 12,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderColor: tokens.colors.outline,
-  },
-  taskDetailCopy: {
-    flex: 1,
-    minWidth: 0,
-    gap: 4,
-  },
-  taskDetailTitle: {
-    fontSize: 14,
-    lineHeight: 19,
-    color: tokens.colors.text,
-    fontFamily: tokens.typography.bodyBoldFamily,
-    fontWeight: '700',
-  },
-  taskDetailMeta: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: tokens.colors.muted,
-    fontFamily: tokens.typography.bodyFamily,
-  },
-  taskDetailPill: {
-    maxWidth: 112,
-    borderRadius: tokens.radius.pill,
-    backgroundColor: tokens.colors.surfaceSoft,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-  },
-  taskDetailPillText: {
-    fontSize: 11,
-    lineHeight: 15,
-    color: tokens.colors.primaryHover,
-    fontFamily: tokens.typography.bodyFamily,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  rhythmRow: {
-    height: 148,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-  rhythmItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 6,
-  },
-  rhythmBarTrack: {
-    width: '100%',
-    height: 98,
-    borderRadius: tokens.radius.pill,
-    backgroundColor: tokens.colors.surfaceSoft,
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
-  },
-  rhythmBar: {
-    width: '100%',
-    borderRadius: tokens.radius.pill,
-    backgroundColor: tokens.colors.accent,
-  },
-  rhythmCount: {
-    fontSize: 12,
-    lineHeight: 15,
-    color: tokens.colors.text,
-    fontFamily: tokens.typography.bodyBoldFamily,
-    fontWeight: '700',
-  },
-  rhythmLabel: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: tokens.colors.muted,
-    fontFamily: tokens.typography.bodyFamily,
-    fontWeight: '600',
-  },
-  interruptionList: {
-    gap: 12,
-  },
-  interruptionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  interruptionLabel: {
-    width: 74,
-    fontSize: 12,
-    lineHeight: 16,
-    color: tokens.colors.text,
-    fontFamily: tokens.typography.bodyFamily,
-    fontWeight: '700',
-  },
-  interruptionTrack: {
-    flex: 1,
-    height: 12,
-    borderRadius: tokens.radius.pill,
-    backgroundColor: tokens.colors.surfaceSoft,
-    overflow: 'hidden',
-  },
-  interruptionFill: {
-    height: '100%',
-    borderRadius: tokens.radius.pill,
-    backgroundColor: tokens.colors.primary,
-  },
-  interruptionValue: {
-    width: 24,
-    fontSize: 12,
-    lineHeight: 16,
-    color: tokens.colors.muted,
-    textAlign: 'right',
-    fontFamily: tokens.typography.bodyBoldFamily,
-    fontWeight: '700',
   },
 });
