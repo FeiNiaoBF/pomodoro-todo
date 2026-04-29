@@ -2,7 +2,8 @@ import { readJson, writeJson } from './storageClient';
 import { STORAGE_KEYS } from './storageKeys';
 
 export type OneTomatoTheme = 'system' | 'light' | 'dark';
-export type OneTomatoLanguage = 'system' | 'en' | 'zh-Hans';
+export type OneTomatoLanguage = 'system' | 'en' | 'zh-CN';
+export type StoredOneTomatoLanguage = OneTomatoLanguage | 'zh-Hans';
 
 export interface OneTomatoSettings {
   focusDurationMinutes: number;
@@ -12,6 +13,10 @@ export interface OneTomatoSettings {
   reducedMotion: boolean;
   theme: OneTomatoTheme;
   language: OneTomatoLanguage;
+}
+
+export interface StoredOneTomatoSettings extends Omit<OneTomatoSettings, 'language'> {
+  language?: StoredOneTomatoLanguage;
 }
 
 export const defaultSettings: OneTomatoSettings = {
@@ -40,7 +45,7 @@ export function clampSettingValue<Key extends keyof typeof settingsLimits>(
   return Math.min(limit.max, Math.max(limit.min, value));
 }
 
-function isSettings(value: unknown): value is OneTomatoSettings {
+function isSettings(value: unknown): value is StoredOneTomatoSettings {
   if (!value || typeof value !== 'object') {
     return false;
   }
@@ -66,13 +71,14 @@ function isSettings(value: unknown): value is OneTomatoSettings {
       settings.language === undefined ||
       settings.language === 'system' ||
       settings.language === 'en' ||
+      settings.language === 'zh-CN' ||
       settings.language === 'zh-Hans'
     )
   );
 }
 
 export const settingsStorage = {
-  async loadSettings(): Promise<OneTomatoSettings> {
+  async loadSettings(): Promise<StoredOneTomatoSettings> {
     return (await readJson(STORAGE_KEYS.settings, isSettings)) ?? defaultSettings;
   },
 

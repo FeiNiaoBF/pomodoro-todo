@@ -26,10 +26,10 @@
 
 ## 3. 语言与本地化
 
-- [ ] Settings 中能选择 System / English / 简体中文。
-- [ ] System language 能跟随 OS 语言：英文系统显示英文，中文系统显示简体中文。
+- [ ] Settings 中能选择 System / English / 中文。
+- [ ] System language 能跟随 OS 语言：英文系统显示英文，中文系统显示中文。
 - [ ] English 模式关闭并重启 App 后仍保持 English。
-- [ ] 简体中文模式关闭并重启 App 后仍保持简体中文。
+- [ ] 中文模式关闭并重启 App 后仍保持中文。
 - [ ] Today、Focus、Break、Tasks、Insights、Settings 的主要 UI 文案会随语言切换。
 - [ ] 底部导航 Today / Tasks / Insights 会随语言切换。
 - [ ] 番茄进度文案会随语言切换，包括正常进度、未估算、超出预计。

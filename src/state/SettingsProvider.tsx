@@ -12,6 +12,7 @@ import {
   clampSettingValue,
   defaultSettings,
   OneTomatoSettings,
+  StoredOneTomatoSettings,
   settingsStorage,
 } from '../storage/settingsStorage';
 
@@ -24,10 +25,18 @@ interface SettingsContextValue {
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
-function normalizeSettings(settings: OneTomatoSettings): OneTomatoSettings {
+function normalizeLanguage(language: StoredOneTomatoSettings['language']): OneTomatoSettings['language'] {
+  if (language === 'zh-Hans') {
+    return 'zh-CN';
+  }
+
+  return language ?? defaultSettings.language;
+}
+
+function normalizeSettings(settings: StoredOneTomatoSettings): OneTomatoSettings {
   return {
     ...settings,
-    language: settings.language ?? defaultSettings.language,
+    language: normalizeLanguage(settings.language),
     focusDurationMinutes: clampSettingValue(
       'focusDurationMinutes',
       settings.focusDurationMinutes

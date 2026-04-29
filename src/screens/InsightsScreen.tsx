@@ -37,11 +37,11 @@ function isSameDay(timestamp: number, reference: Date) {
   );
 }
 
-function formatFocusTime(seconds: number, language: 'en' | 'zh-Hans') {
+function formatFocusTime(seconds: number, language: 'en' | 'zh-CN') {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
 
-  if (language === 'zh-Hans') {
+  if (language === 'zh-CN') {
     return hours > 0 ? `${hours}小时 ${minutes}分钟` : `${minutes}分钟`;
   }
 
@@ -123,7 +123,7 @@ export function InsightsScreen() {
 
       return {
         key: day.toISOString(),
-        label: getWeekdayLabel(day, language === 'zh-Hans' ? 'zh-CN' : 'en-US'),
+        label: getWeekdayLabel(day, language === 'zh-CN' ? 'zh-CN' : 'en-US'),
         count: sessions.length,
         focusSeconds,
       };

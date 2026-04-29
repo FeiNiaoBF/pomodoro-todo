@@ -36,7 +36,7 @@ describe('SettingsProvider', () => {
       longBreakInterval: 3,
       reducedMotion: true,
       theme: 'dark',
-      language: 'zh-Hans',
+      language: 'zh-CN',
     };
 
     await AsyncStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(storedSettings));
@@ -46,6 +46,29 @@ describe('SettingsProvider', () => {
     await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
     expect(result.current.settings).toEqual(storedSettings);
+  });
+
+  it('migrates legacy zh-Hans language setting to zh-CN', async () => {
+    const storedSettings = {
+      focusDurationMinutes: 45,
+      shortBreakDurationMinutes: 8,
+      longBreakDurationMinutes: 20,
+      longBreakInterval: 3,
+      reducedMotion: true,
+      theme: 'dark',
+      language: 'zh-Hans',
+    };
+
+    await AsyncStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(storedSettings));
+
+    const { result } = renderHook(() => useSettings(), { wrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
+
+    expect(result.current.settings).toEqual({
+      ...storedSettings,
+      language: 'zh-CN',
+    });
   });
 
   it('updateSettings persists changes', async () => {

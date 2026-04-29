@@ -42,15 +42,15 @@ describe('tomato progress display helpers', () => {
   });
 
   it('formats tomato progress in Chinese', () => {
-    expect(formatTomatoProgress(2, 3, 'zh-Hans')).toBe('2/3 个番茄');
-    expect(formatTomatoProgress(6, 1, 'zh-Hans')).toBe('6 已完成 · 预计 1');
+    expect(formatTomatoProgress(2, 3, 'zh-CN')).toBe('2/3 个番茄');
+    expect(formatTomatoProgress(6, 1, 'zh-CN')).toBe('6 已完成 · 预计 1');
   });
 });
 
 describe('date display helpers', () => {
   it('derives morning greeting', () => {
     expect(getTimeOfDayGreeting(new Date(2026, 3, 27, 8))).toBe('Good morning');
-    expect(getTimeOfDayGreeting(new Date(2026, 3, 27, 8), 'zh-Hans')).toBe('早上好');
+    expect(getTimeOfDayGreeting(new Date(2026, 3, 27, 8), 'zh-CN')).toBe('早上好');
   });
 
   it('derives afternoon greeting', () => {
@@ -90,16 +90,16 @@ describe('task and development display helpers', () => {
   };
 
   it('localizes built-in tutorial tasks only', () => {
-    expect(getTaskDisplayTitle(tutorialTask, 'zh-Hans')).toBe('开始第一轮番茄');
-    expect(getTaskDisplayDescription(tutorialTask, 'zh-Hans')).toBe('点击开始番茄，完成一轮专注。');
-    expect(getTaskDisplayTitle(userTask, 'zh-Hans')).toBe('Do not translate this');
+    expect(getTaskDisplayTitle(tutorialTask, 'zh-CN')).toBe('开始第一轮番茄');
+    expect(getTaskDisplayDescription(tutorialTask, 'zh-CN')).toBe('点击开始番茄，完成一轮专注。');
+    expect(getTaskDisplayTitle(userTask, 'zh-CN')).toBe('Do not translate this');
   });
 
   it('maps task states to user-facing labels', () => {
     expect(getTaskStateLabel('active')).toBe('Current focus');
     expect(getTaskStateLabel('paused')).toBe('Saved for later');
     expect(getTaskStateLabel('completed')).toBe('Done');
-    expect(getTaskStateLabel('active', 'zh-Hans')).toBe('当前专注');
+    expect(getTaskStateLabel('active', 'zh-CN')).toBe('当前专注');
   });
 
   it('hides dev timer controls by default', () => {

@@ -32,10 +32,10 @@ const THEME_OPTIONS: Array<{ labelKey: 'settings.theme.system' | 'settings.theme
   { labelKey: 'settings.theme.dark', value: 'dark' },
 ];
 
-const LANGUAGE_OPTIONS: Array<{ labelKey: 'settings.language.system' | 'settings.language.en' | 'settings.language.zhHans'; value: OneTomatoLanguage }> = [
+const LANGUAGE_OPTIONS: Array<{ labelKey: 'settings.language.system' | 'settings.language.en' | 'settings.language.zhCN'; value: OneTomatoLanguage }> = [
   { labelKey: 'settings.language.system', value: 'system' },
   { labelKey: 'settings.language.en', value: 'en' },
-  { labelKey: 'settings.language.zhHans', value: 'zh-Hans' },
+  { labelKey: 'settings.language.zhCN', value: 'zh-CN' },
 ];
 
 export function SettingsScreen() {

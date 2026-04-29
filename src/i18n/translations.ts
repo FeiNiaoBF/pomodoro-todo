@@ -1,28 +1,28 @@
 import { OneTomatoLanguage } from '../storage/settingsStorage';
 import en from './locales/en.json';
-import zhHans from './locales/zh-Hans.json';
+import zhCN from './locales/zh-CN.json';
 
-export type AppLanguage = 'en' | 'zh-Hans';
+export type AppLanguage = 'en' | 'zh-CN';
 
 export type TranslationKey = keyof typeof en;
 
 type LocaleKeyDifference =
-  | Exclude<TranslationKey, keyof typeof zhHans>
-  | Exclude<keyof typeof zhHans, TranslationKey>;
+  | Exclude<TranslationKey, keyof typeof zhCN>
+  | Exclude<keyof typeof zhCN, TranslationKey>;
 
 const localeKeyCheck: Record<LocaleKeyDifference, never> = {};
 void localeKeyCheck;
 
 const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
   en,
-  'zh-Hans': zhHans,
+  'zh-CN': zhCN,
 };
 
 function getDeviceLanguage(): AppLanguage {
   try {
     const locale = Intl.DateTimeFormat().resolvedOptions().locale;
 
-    return locale.toLowerCase().startsWith('zh') ? 'zh-Hans' : 'en';
+    return locale.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en';
   } catch {
     return 'en';
   }
