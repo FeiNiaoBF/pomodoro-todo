@@ -1,5 +1,6 @@
 import { getTimeOfDayGreeting, getWeekdayLabel } from '../../src/utils/dateLabels';
 import { shouldShowDevTimerControls } from '../../src/utils/devControls';
+import { getVisibleBarPercent } from '../../src/utils/chartScales';
 import { getTaskStateLabel } from '../../src/utils/taskLabels';
 import {
   formatDailyGoalProgress,
@@ -80,5 +81,17 @@ describe('task and development display helpers', () => {
     expect(shouldShowDevTimerControls(undefined)).toBe(false);
     expect(shouldShowDevTimerControls('false')).toBe(false);
     expect(shouldShowDevTimerControls('true')).toBe(true);
+  });
+});
+
+describe('chart display helpers', () => {
+  it('keeps zero-value bars visually empty', () => {
+    expect(getVisibleBarPercent(0, 10)).toBe(0);
+    expect(getVisibleBarPercent(0, 0)).toBe(0);
+  });
+
+  it('keeps small non-zero values visible', () => {
+    expect(getVisibleBarPercent(1, 100, 8)).toBe(8);
+    expect(getVisibleBarPercent(50, 100, 8)).toBe(50);
   });
 });

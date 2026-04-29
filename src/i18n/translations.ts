@@ -128,6 +128,9 @@ export type TranslationKey =
   | 'insights.interruptionChart'
   | 'insights.interruptionChartMeta'
   | 'insights.noInterruptions'
+  | 'insights.taskDetails'
+  | 'insights.taskDetailsMeta'
+  | 'insights.noTaskDetails'
   | 'insights.reason.phone'
   | 'insights.reason.message'
   | 'insights.reason.people'
@@ -271,6 +274,9 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'insights.interruptionChart': 'Interruption pattern',
     'insights.interruptionChartMeta': 'Today by reason',
     'insights.noInterruptions': 'No interruptions logged today.',
+    'insights.taskDetails': "Today's tasks",
+    'insights.taskDetailsMeta': '{count} in plan',
+    'insights.noTaskDetails': 'No planned tasks yet.',
     'insights.reason.phone': 'Phone',
     'insights.reason.message': 'Message',
     'insights.reason.people': 'People',
@@ -413,6 +419,9 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'insights.interruptionChart': '打断分布',
     'insights.interruptionChartMeta': '按今天记录的原因',
     'insights.noInterruptions': '今天还没有记录打断。',
+    'insights.taskDetails': '今日任务明细',
+    'insights.taskDetailsMeta': '计划内 {count} 个',
+    'insights.noTaskDetails': '今天还没有计划任务。',
     'insights.reason.phone': '电话',
     'insights.reason.message': '消息',
     'insights.reason.people': '他人',

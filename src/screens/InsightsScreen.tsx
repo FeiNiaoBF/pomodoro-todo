@@ -13,7 +13,10 @@ import { useTranslation } from '../hooks/useTranslation';
 import { tokens } from '../theme/tokens';
 import { TranslationKey } from '../i18n/translations';
 import { InterruptionReason } from '../types/pomodoro';
+import { getVisibleBarPercent } from '../utils/chartScales';
 import { getWeekdayLabel } from '../utils/dateLabels';
+import { getTaskStateLabel } from '../utils/taskLabels';
+import { formatTomatoProgress } from '../utils/tomatoProgress';
 
 const INTERRUPTION_REASONS: InterruptionReason[] = [
   'phone',
@@ -89,6 +92,11 @@ export function InsightsScreen() {
     const completedTodayTasks = completedTasks.filter(task =>
       task.completedAt ? isSameDay(task.completedAt, today) : false
     );
+    const todayTaskIds = new Set(todayTasks.map(task => task.id));
+    const todayPlanTasks = [
+      ...todayTasks,
+      ...completedTodayTasks.filter(task => !todayTaskIds.has(task.id)),
+    ];
     const plannedTaskCount = todayTasks.length + completedTodayTasks.length;
     const taskProgress = plannedTaskCount > 0
       ? Math.min(100, Math.round((completedTodayTasks.length / plannedTaskCount) * 100))
@@ -133,6 +141,16 @@ export function InsightsScreen() {
       weeklyTomatoes: weeklyRhythm.reduce((total, day) => total + day.count, 0),
       weeklyFocusSeconds: weeklyRhythm.reduce((total, day) => total + day.focusSeconds, 0),
       interruptionBreakdown,
+      taskDetails: todayPlanTasks.map(task => ({
+        id: task.id,
+        title: task.title,
+        stateLabel: getTaskStateLabel(task.state, language),
+        tomatoProgress: formatTomatoProgress(
+          task.completedTomatoes,
+          task.estimatedTomatoes,
+          language
+        ),
+      })),
     };
   }, [completedSessions, completedTasks, interruptions, language, t, todayTasks]);
 
@@ -245,6 +263,48 @@ export function InsightsScreen() {
           ]}
         >
           <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('insights.taskDetails')}</Text>
+            <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>
+              {t('insights.taskDetailsMeta', { count: insights.taskDetails.length })}
+            </Text>
+          </View>
+          {insights.taskDetails.length === 0 ? (
+            <Text style={[styles.sectionText, { color: theme.colors.muted }]}>
+              {t('insights.noTaskDetails')}
+            </Text>
+          ) : (
+            <View style={styles.taskDetailList}>
+              {insights.taskDetails.map(task => (
+                <View key={task.id} style={[styles.taskDetailRow, { borderColor: theme.colors.outline }]}>
+                  <View style={styles.taskDetailCopy}>
+                    <Text style={[styles.taskDetailTitle, { color: theme.colors.text }]} numberOfLines={2}>
+                      {task.title}
+                    </Text>
+                    <Text style={[styles.taskDetailMeta, { color: theme.colors.muted }]}>
+                      {task.tomatoProgress}
+                    </Text>
+                  </View>
+                  <View style={[styles.taskDetailPill, { backgroundColor: theme.colors.surfaceSoft }]}>
+                    <Text style={[styles.taskDetailPillText, { color: theme.colors.primaryHover }]}>
+                      {task.stateLabel}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View
+          style={[
+            styles.sectionCard,
+            {
+              backgroundColor: theme.colors.cardTranslucent,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
+          <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('insights.weeklyFocus')}</Text>
             <Text style={[styles.sectionMeta, { color: theme.colors.primaryHover }]}>
               {t('insights.weeklyFocusMeta', {
@@ -261,7 +321,7 @@ export function InsightsScreen() {
                     style={[
                       styles.rhythmBar,
                       {
-                        height: `${Math.max(8, (day.focusSeconds / maxWeeklySeconds) * 100)}%`,
+                        height: `${getVisibleBarPercent(day.focusSeconds, maxWeeklySeconds)}%`,
                         backgroundColor: theme.colors.accent,
                       },
                     ]}
@@ -308,7 +368,7 @@ export function InsightsScreen() {
                       style={[
                         styles.interruptionFill,
                         {
-                          width: `${Math.max(4, (item.count / maxInterruptionCount) * 100)}%`,
+                          width: `${getVisibleBarPercent(item.count, maxInterruptionCount, 4)}%`,
                           backgroundColor: theme.colors.primary,
                         },
                       ]}
@@ -546,6 +606,52 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: tokens.colors.muted,
     fontFamily: tokens.typography.bodyFamily,
+  },
+  taskDetailList: {
+    gap: 0,
+  },
+  taskDetailRow: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderColor: tokens.colors.outline,
+  },
+  taskDetailCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
+  },
+  taskDetailTitle: {
+    fontSize: 14,
+    lineHeight: 19,
+    color: tokens.colors.text,
+    fontFamily: tokens.typography.bodyBoldFamily,
+    fontWeight: '700',
+  },
+  taskDetailMeta: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: tokens.colors.muted,
+    fontFamily: tokens.typography.bodyFamily,
+  },
+  taskDetailPill: {
+    maxWidth: 112,
+    borderRadius: tokens.radius.pill,
+    backgroundColor: tokens.colors.surfaceSoft,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  taskDetailPillText: {
+    fontSize: 11,
+    lineHeight: 15,
+    color: tokens.colors.primaryHover,
+    fontFamily: tokens.typography.bodyFamily,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   rhythmRow: {
     height: 148,
