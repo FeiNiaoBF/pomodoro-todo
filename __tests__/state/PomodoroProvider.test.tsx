@@ -140,6 +140,35 @@ describe('PomodoroProvider', () => {
     expect(updatedTask?.state).toBe('paused');
   });
 
+  it('startTomato resumes a saved-for-later focus session without resetting time', async () => {
+    const { result } = renderHook(() => useProviderState(), { wrapper });
+    await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));
+    const task = result.current.tasks.currentTask!;
+
+    act(() => {
+      result.current.pomodoro.startTomato(task);
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(5 * 60 * 1000);
+    });
+
+    act(() => {
+      result.current.pomodoro.saveForLater();
+    });
+
+    expect(result.current.pomodoro.remainingSeconds).toBe(20 * 60);
+
+    act(() => {
+      result.current.pomodoro.startTomato(task);
+    });
+
+    expect(result.current.pomodoro.status).toBe('running');
+    expect(result.current.pomodoro.currentMode).toBe('focus');
+    expect(result.current.pomodoro.remainingSeconds).toBe(20 * 60);
+    expect(result.current.pomodoro.activeSession?.taskId).toBe(task.id);
+  });
+
   it('logInterruption adds an interruption without clearing session progress state', async () => {
     const { result } = renderHook(() => useProviderState(), { wrapper });
     await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));

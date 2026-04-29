@@ -11,6 +11,8 @@ interface CurrentTaskHeroCardProps {
   description: string;
   completedTomatoes: number;
   totalTomatoes: number;
+  badgeText?: string;
+  footerNote?: string;
   onPress?: () => void;
 }
 
@@ -20,6 +22,8 @@ export function CurrentTaskHeroCard({
   description,
   completedTomatoes,
   totalTomatoes,
+  badgeText,
+  footerNote,
   onPress,
 }: CurrentTaskHeroCardProps) {
   const theme = useAppTheme();
@@ -53,7 +57,7 @@ export function CurrentTaskHeroCard({
             },
           ]}
         >
-          <Text style={[styles.badgeText, { color: theme.colors.muted }]}>{t('task.readyNow')}</Text>
+          <Text style={[styles.badgeText, { color: theme.colors.muted }]}>{badgeText ?? t('task.readyNow')}</Text>
         </View>
       </View>
 
@@ -77,6 +81,9 @@ export function CurrentTaskHeroCard({
           completed={completedTomatoes}
           showLabel
         />
+        {footerNote ? (
+          <Text style={[styles.footerNote, { color: theme.colors.primaryHover }]}>{footerNote}</Text>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -84,9 +91,12 @@ export function CurrentTaskHeroCard({
 
 const styles = StyleSheet.create({
   card: {
+    width: '100%',
+    maxWidth: '100%',
     borderRadius: tokens.radius.hero,
     padding: tokens.spacing.md,
     borderWidth: 1,
+    overflow: 'hidden',
     ...tokens.shadow,
   },
   cardPressed: {
@@ -97,6 +107,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 10,
     marginBottom: tokens.spacing.sm,
   },
   labelPill: {
@@ -122,6 +133,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   title: {
+    maxWidth: '100%',
+    flexShrink: 1,
+    flexWrap: 'wrap',
     fontSize: 30,
     lineHeight: 36,
     fontFamily: tokens.typography.headingFamily,
@@ -132,6 +146,8 @@ const styles = StyleSheet.create({
     marginBottom: tokens.spacing.sm,
   },
   description: {
+    maxWidth: '100%',
+    flexShrink: 1,
     fontSize: tokens.typography.body,
     lineHeight: 23,
     fontFamily: tokens.typography.bodyFamily,
@@ -139,8 +155,16 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: 2,
+    gap: 10,
   },
   footerWithoutDivider: {
     marginTop: 0,
+  },
+  footerNote: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: tokens.colors.primaryHover,
+    fontFamily: tokens.typography.bodyFamily,
+    fontWeight: '700',
   },
 });

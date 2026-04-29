@@ -28,6 +28,7 @@ export function TasksScreen() {
     backlogTasks,
     completedTasks,
     addTask,
+    updateTask,
     moveTaskToToday,
     setCurrentTask,
     completeTask,
@@ -177,6 +178,7 @@ export function TasksScreen() {
                 activeTab={activeTab}
                 onMoveToToday={moveTaskToToday}
                 onSetCurrentTask={setCurrentTask}
+                onUpdateTask={updateTask}
                 onCompleteTask={completeTask}
                 onArchiveTask={archiveTask}
               />
@@ -194,6 +196,7 @@ function TaskCard({
   activeTab,
   onMoveToToday,
   onSetCurrentTask,
+  onUpdateTask,
   onCompleteTask,
   onArchiveTask,
 }: {
@@ -202,6 +205,7 @@ function TaskCard({
   activeTab: TaskTab;
   onMoveToToday: (id: string) => void;
   onSetCurrentTask: (id: string) => void;
+  onUpdateTask: (id: string, patch: Partial<Task>) => void;
   onCompleteTask: (id: string) => void;
   onArchiveTask: (id: string) => void;
 }) {
@@ -239,6 +243,74 @@ function TaskCard({
         {formatTomatoProgress(task.completedTomatoes, task.estimatedTomatoes, language)}
       </Text>
 
+      <View
+        style={[
+          styles.tomatoInfoPanel,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.outline,
+          },
+        ]}
+      >
+        <View style={styles.tomatoInfoRow}>
+          <View style={styles.tomatoInfoCopy}>
+            <Text style={[styles.tomatoInfoLabel, { color: theme.colors.text }]}>
+              {t('tasks.estimateLabel')}
+            </Text>
+            <Text style={[styles.tomatoInfoHint, { color: theme.colors.muted }]}>
+              {t('tasks.estimateHint')}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.estimateStepper,
+              {
+                backgroundColor: theme.colors.input,
+                borderColor: theme.colors.outline,
+              },
+            ]}
+          >
+            <EstimateButton
+              label={t('tasks.decreaseEstimate')}
+              disabled={task.estimatedTomatoes <= 1}
+              onPress={() => onUpdateTask(task.id, {
+                estimatedTomatoes: Math.max(1, task.estimatedTomatoes - 1),
+              })}
+            >
+              -
+            </EstimateButton>
+            <Text style={[styles.estimateValue, { color: theme.colors.text }]}>
+              {task.estimatedTomatoes}
+            </Text>
+            <EstimateButton
+              label={t('tasks.increaseEstimate')}
+              disabled={task.estimatedTomatoes >= 12}
+              onPress={() => onUpdateTask(task.id, {
+                estimatedTomatoes: Math.min(12, task.estimatedTomatoes + 1),
+              })}
+            >
+              +
+            </EstimateButton>
+          </View>
+        </View>
+
+        <View style={styles.tomatoInfoRow}>
+          <View style={styles.tomatoInfoCopy}>
+            <Text style={[styles.tomatoInfoLabel, { color: theme.colors.text }]}>
+              {t('tasks.completedLabel')}
+            </Text>
+            <Text style={[styles.tomatoInfoHint, { color: theme.colors.muted }]}>
+              {t('tasks.completedHint')}
+            </Text>
+          </View>
+          <View style={[styles.completedCountPill, { backgroundColor: theme.colors.surfaceSoft }]}>
+            <Text style={[styles.completedCountText, { color: theme.colors.primaryHover }]}>
+              {task.completedTomatoes}
+            </Text>
+          </View>
+        </View>
+      </View>
+
       <View style={styles.actionRow}>
         {activeTab === 'backlog' ? (
           <ActionChip label={t('tasks.moveToToday')} onPress={() => onMoveToToday(task.id)} />
@@ -255,6 +327,48 @@ function TaskCard({
         <ActionChip label={t('tasks.archive')} onPress={() => onArchiveTask(task.id)} quiet />
       </View>
     </View>
+  );
+}
+
+function EstimateButton({
+  children,
+  disabled,
+  label,
+  onPress,
+}: {
+  children: string;
+  disabled: boolean;
+  label: string;
+  onPress: () => void;
+}) {
+  const theme = useAppTheme();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.estimateButton,
+        {
+          backgroundColor: disabled
+            ? theme.colors.disabled
+            : pressed
+              ? theme.colors.primarySoft
+              : theme.colors.surfaceSoft,
+        },
+      ]}
+    >
+      <Text
+        style={[
+          styles.estimateButtonText,
+          { color: disabled ? theme.colors.disabledText : theme.colors.primaryHover },
+        ]}
+      >
+        {children}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -481,6 +595,87 @@ const styles = StyleSheet.create({
     color: tokens.colors.muted,
     fontFamily: tokens.typography.bodyFamily,
     marginBottom: 14,
+  },
+  tomatoInfoPanel: {
+    borderRadius: tokens.radius.card,
+    borderWidth: 1,
+    borderColor: tokens.colors.outline,
+    backgroundColor: tokens.colors.surface,
+    padding: 14,
+    gap: 14,
+    marginBottom: 14,
+  },
+  tomatoInfoRow: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  tomatoInfoCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  tomatoInfoLabel: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: tokens.colors.text,
+    fontFamily: tokens.typography.bodyFamily,
+    fontWeight: '700',
+  },
+  tomatoInfoHint: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: tokens.colors.muted,
+    fontFamily: tokens.typography.bodyFamily,
+  },
+  estimateStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: tokens.radius.card,
+    borderWidth: 1,
+    borderColor: tokens.colors.outline,
+    backgroundColor: tokens.colors.input,
+    overflow: 'hidden',
+  },
+  estimateButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tokens.colors.surfaceSoft,
+  },
+  estimateButtonText: {
+    fontSize: 19,
+    lineHeight: 22,
+    color: tokens.colors.primaryHover,
+    fontFamily: tokens.typography.bodyFamily,
+    fontWeight: '700',
+  },
+  estimateValue: {
+    minWidth: 38,
+    fontSize: 17,
+    lineHeight: 22,
+    color: tokens.colors.text,
+    textAlign: 'center',
+    fontFamily: tokens.typography.headingFamily,
+    fontWeight: '700',
+  },
+  completedCountPill: {
+    minWidth: 48,
+    minHeight: 36,
+    borderRadius: tokens.radius.pill,
+    backgroundColor: tokens.colors.surfaceSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  completedCountText: {
+    fontSize: 16,
+    lineHeight: 20,
+    color: tokens.colors.primaryHover,
+    fontFamily: tokens.typography.headingFamily,
+    fontWeight: '700',
   },
   actionRow: {
     flexDirection: 'row',

@@ -308,6 +308,38 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   }, [currentMode, status]);
 
   const startTomato = useCallback((task: Task, sessionIndex = focusSessionIndex) => {
+    const canResumeSavedSession =
+      activeSession?.taskId === task.id &&
+      activeSession.mode === 'focus' &&
+      (
+        status === 'saved_for_later' ||
+        status === 'paused' ||
+        activeSession.status === 'saved_for_later' ||
+        activeSession.status === 'paused'
+      );
+
+    if (canResumeSavedSession) {
+      const currentRemainingSeconds = getCurrentRemainingSeconds();
+      const { endedAt, ...sessionWithoutEnd } = activeSession;
+      const resumedSession = { ...sessionWithoutEnd, status: 'running' as const };
+
+      markPomodoroMutation();
+      setCurrentTask(task.id);
+      setActiveSession(resumedSession);
+      setCurrentMode('focus');
+      setRemainingSeconds(currentRemainingSeconds);
+      setStatus('running');
+      persistActiveTimer(
+        createActiveTimerSnapshot(
+          resumedSession,
+          'running',
+          currentRemainingSeconds,
+          sessionIndex
+        )
+      );
+      return;
+    }
+
     const startedAt = Date.now();
     const session = createSession(task.id, 'focus', focusDurationSeconds, startedAt);
 
@@ -326,7 +358,16 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
         startedAt
       )
     );
-  }, [focusDurationSeconds, focusSessionIndex, markPomodoroMutation, persistActiveTimer, setCurrentTask]);
+  }, [
+    activeSession,
+    focusDurationSeconds,
+    focusSessionIndex,
+    getCurrentRemainingSeconds,
+    markPomodoroMutation,
+    persistActiveTimer,
+    setCurrentTask,
+    status,
+  ]);
 
   const pause = useCallback(() => {
     if (status !== 'running') {
@@ -471,16 +512,31 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
     if (activeSession) {
       const savedSession = finalizeSession(activeSession, 'saved_for_later', currentRemainingSeconds);
       setActiveSession(savedSession);
+      persistActiveTimer(
+        createActiveTimerSnapshot(
+          savedSession,
+          'saved_for_later',
+          currentRemainingSeconds,
+          focusSessionIndex
+        )
+      );
     }
 
     setCurrentMode('idle');
     setStatus('saved_for_later');
-    setRemainingSeconds(focusDurationSeconds);
-    clearActiveTimer();
+    setRemainingSeconds(currentRemainingSeconds);
     if (currentTask) {
       updateTask(currentTask.id, { state: 'paused' });
     }
-  }, [activeSession, clearActiveTimer, currentTask, focusDurationSeconds, getCurrentRemainingSeconds, markPomodoroMutation, updateTask]);
+  }, [
+    activeSession,
+    currentTask,
+    focusSessionIndex,
+    getCurrentRemainingSeconds,
+    markPomodoroMutation,
+    persistActiveTimer,
+    updateTask,
+  ]);
 
   const logInterruption = useCallback((reason: InterruptionReason) => {
     if (!activeSession) {

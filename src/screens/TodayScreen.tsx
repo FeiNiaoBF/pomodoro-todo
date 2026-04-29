@@ -20,11 +20,18 @@ import { tokens } from '../theme/tokens';
 import { getTimeOfDayGreeting } from '../utils/dateLabels';
 import { formatDailyGoalProgress } from '../utils/tomatoProgress';
 
+function formatRemainingTime(seconds: number) {
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+
+  return `${String(minutes).padStart(2, '0')}:${String(remainder).padStart(2, '0')}`;
+}
+
 export function TodayScreen() {
   const theme = useAppTheme();
   const { language, t } = useTranslation();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { completedSessions, dailyGoal, startTomato } = usePomodoro();
+  const { activeSession, completedSessions, dailyGoal, remainingSeconds, startTomato, status } = usePomodoro();
   const {
     currentTask,
     todayTasks,
@@ -39,6 +46,16 @@ export function TodayScreen() {
   const dailyProgress = formatDailyGoalProgress(completedToday, dailyGoal, language);
 
   const focusTask = currentTask ?? todayTasks[0] ?? null;
+  const shouldContinueTomato =
+    Boolean(focusTask) &&
+    focusTask?.id === activeSession?.taskId &&
+    (focusTask.state === 'paused' || status === 'saved_for_later' || status === 'paused');
+  const startButtonLabel = shouldContinueTomato
+    ? t('today.continueTomato')
+    : t('today.startTomato');
+  const savedTimerNote = shouldContinueTomato
+    ? t('today.savedTimerNote', { time: formatRemainingTime(remainingSeconds) })
+    : undefined;
   const displayedUpNextTasks = focusTask
     ? upNextTasks.filter(task => task.id !== focusTask.id)
     : upNextTasks;
@@ -124,12 +141,14 @@ export function TodayScreen() {
               description={focusTask.description ?? ''}
               completedTomatoes={focusTask.completedTomatoes}
               totalTomatoes={focusTask.estimatedTomatoes}
+              badgeText={shouldContinueTomato ? t('today.savedTimerBadge') : undefined}
+              footerNote={savedTimerNote}
             />
 
             <Pressable
               accessibilityRole="button"
-              accessibilityHint={t('today.startTomato')}
-              accessibilityLabel={t('today.startTomato')}
+              accessibilityHint={startButtonLabel}
+              accessibilityLabel={startButtonLabel}
               onPress={() => {
                 setCurrentTask(focusTask.id);
                 startTomato(focusTask);
@@ -142,7 +161,7 @@ export function TodayScreen() {
               ]}
             >
               <View style={[styles.primaryButtonIndicator, { backgroundColor: theme.colors.onPrimary }]} />
-              <Text style={[styles.primaryButtonText, { color: theme.colors.onPrimary }]}>{t('today.startTomato')}</Text>
+              <Text style={[styles.primaryButtonText, { color: theme.colors.onPrimary }]}>{startButtonLabel}</Text>
             </Pressable>
           </>
         ) : (
@@ -232,6 +251,9 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.background,
   },
   content: {
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
     paddingHorizontal: 20,
     paddingTop: 18,
     paddingBottom: 132,
@@ -302,6 +324,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   progressCard: {
+    width: '100%',
+    maxWidth: '100%',
     backgroundColor: tokens.colors.cardStrong,
     borderRadius: tokens.radius.modal,
     padding: 18,
@@ -451,6 +475,8 @@ const styles = StyleSheet.create({
     fontFamily: tokens.typography.bodyFamily,
   },
   queueCard: {
+    width: '100%',
+    maxWidth: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -477,9 +503,12 @@ const styles = StyleSheet.create({
   },
   queueTextWrap: {
     flex: 1,
+    minWidth: 0,
     gap: 8,
   },
   queueTitle: {
+    flexShrink: 1,
+    flexWrap: 'wrap',
     fontSize: 17,
     lineHeight: 23,
     color: tokens.colors.text,

@@ -163,7 +163,7 @@ describe('active timer recovery', () => {
     );
   });
 
-  it('saveForLater clears active timer snapshot', async () => {
+  it('saveForLater persists saved timer snapshot with remainingSeconds', async () => {
     const { result } = renderHook(() => useProviderState(), { wrapper: AppStateWrapper });
 
     await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));
@@ -175,11 +175,20 @@ describe('active timer recovery', () => {
       result.current.pomodoro.startTomato(task);
     });
 
+    jest.setSystemTime(NOW + 5 * 60 * 1000);
+
     act(() => {
       result.current.pomodoro.saveForLater();
     });
 
-    await waitFor(async () => expect(await readActiveTimer()).toBeNull());
+    await waitFor(async () =>
+      expect(await readActiveTimer()).toMatchObject({
+        mode: 'focus',
+        status: 'saved_for_later',
+        remainingSeconds: 20 * 60,
+        pausedAt: NOW + 5 * 60 * 1000,
+      })
+    );
   });
 
   it('completeFocus replaces active focus snapshot with break snapshot and persists completed session', async () => {
@@ -272,6 +281,27 @@ describe('active timer recovery', () => {
     expect(result.current.pomodoro.currentMode).toBe('focus');
     expect(result.current.pomodoro.status).toBe('paused');
     expect(result.current.pomodoro.remainingSeconds).toBe(777);
+    expect(result.current.pomodoro.activeSession?.id).toBe('recover-focus-session');
+  });
+
+  it('hydration recovers saved-for-later timer without changing remainingSeconds', async () => {
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.activeTimer,
+      JSON.stringify(createRunningFocusSnapshot({
+        status: 'saved_for_later',
+        remainingSeconds: 612,
+        expectedEndAt: undefined,
+        pausedAt: NOW - 60 * 1000,
+      }))
+    );
+
+    const { result } = renderHook(() => useProviderState(), { wrapper: AppStateWrapper });
+
+    await waitFor(() => expect(result.current.pomodoro.isHydrated).toBe(true));
+
+    expect(result.current.pomodoro.currentMode).toBe('focus');
+    expect(result.current.pomodoro.status).toBe('saved_for_later');
+    expect(result.current.pomodoro.remainingSeconds).toBe(612);
     expect(result.current.pomodoro.activeSession?.id).toBe('recover-focus-session');
   });
 

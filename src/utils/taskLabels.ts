@@ -5,9 +5,9 @@ const TASK_STATE_LABEL_KEYS: Record<TaskState, TranslationKey> = {
   active: 'task.currentFocus',
   paused: 'task.savedForLater',
   today: 'task.today',
-  backlog: 'task.savedForLater',
+  backlog: 'task.backlog',
   completed: 'task.done',
-  archived: 'task.savedForLater',
+  archived: 'task.archived',
 };
 
 export function getTaskStateLabel(state: TaskState, language: AppLanguage = 'en') {

@@ -62,7 +62,7 @@ export function createActiveTimerSnapshot(
     remainingSeconds,
     startedAt: session.startedAt,
     expectedEndAt: status === 'running' ? now + remainingSeconds * 1000 : undefined,
-    pausedAt: status === 'paused' || status === 'interrupted' ? now : undefined,
+    pausedAt: status === 'paused' || status === 'interrupted' || status === 'saved_for_later' ? now : undefined,
     focusSessionIndex,
   };
 }
@@ -145,7 +145,11 @@ export function recoverActiveTimerSnapshot(
       : { kind: 'expired_break', completedSession, alreadyCompleted };
   }
 
-  if (snapshot.status === 'paused' || snapshot.status === 'interrupted') {
+  if (
+    snapshot.status === 'paused' ||
+    snapshot.status === 'interrupted' ||
+    snapshot.status === 'saved_for_later'
+  ) {
     return {
       kind: 'paused',
       snapshot,

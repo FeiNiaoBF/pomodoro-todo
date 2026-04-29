@@ -46,6 +46,7 @@ yarn-error.*
 # local AI/tooling artifacts
 .codex/
 .github/prompts/
+.expo-codex*.log
 
 # Python cache artifacts
 __pycache__/

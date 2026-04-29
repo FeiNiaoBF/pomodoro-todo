@@ -32,6 +32,24 @@ Use this checklist on a real device or simulator before adding more product beha
 - Confirm the app follows the OS theme after returning to the app.
 - Close and reopen the app, then confirm System remains selected and resolves correctly.
 
+## Localization
+
+- In Settings, select System language.
+- Change the OS language to English, return to the app, and confirm the app shows English copy.
+- Change the OS language to Simplified Chinese, return to the app, and confirm the app shows Simplified Chinese copy.
+- In Settings, select English, close and reopen the app, then confirm English mode persists.
+- In Settings, select 简体中文, close and reopen the app, then confirm Simplified Chinese mode persists.
+- Confirm Today, Focus, Break, Tasks, Insights, and Settings copy switches correctly between English and Simplified Chinese.
+- Confirm bottom navigation labels switch correctly between Today / Tasks / Insights and 今天 / 任务 / 回顾.
+- Confirm tomato progress copy switches correctly, including normal progress, no-estimate copy, and over-completed copy.
+- Confirm task state labels switch correctly, including Current focus, Saved for later, Today, Backlog, Done, and Archived equivalents.
+- Create a task in English, switch to Simplified Chinese, and confirm the user-created task title is not translated.
+- Create a task in Simplified Chinese, switch to English, and confirm the user-created task title is not translated.
+- In Simplified Chinese mode, confirm weekly rhythm labels are distinct: 一 二 三 四 五 六 日.
+- In English mode, confirm weekly rhythm labels remain distinct enough to identify the week positions and do not collapse into seven identical labels.
+- On a small phone viewport, confirm English button labels do not truncate or overlap.
+- On a small phone viewport, confirm Simplified Chinese button labels do not truncate or overlap.
+
 ## Safe Area / Status Bar
 
 - Confirm no header, title, label, or top bloom content is hidden by the status bar.
