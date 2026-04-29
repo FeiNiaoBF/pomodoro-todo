@@ -8,7 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { initialTasks } from '../data/todaySample';
+import { initialTasks, normalizeSeedTasks } from '../data/todaySample';
 import { runStorageMigrations } from '../storage/migrations';
 import { tasksStorage } from '../storage/tasksStorage';
 import { Task, TaskState } from '../types/task';
@@ -72,7 +72,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       }
 
       if (storedTasks && !changedBeforeHydrationRef.current) {
-        setTasks(sortByCreatedAt(storedTasks));
+        const normalized = normalizeSeedTasks(storedTasks);
+        setTasks(sortByCreatedAt(normalized.tasks));
+
+        if (normalized.changed) {
+          tasksStorage.saveTasks(normalized.tasks);
+        }
       }
 
       hydrationCompleteRef.current = true;

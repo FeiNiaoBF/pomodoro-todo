@@ -62,20 +62,26 @@
 
 ## 6. App 配置与素材
 
-- [ ] `app.json` 中 app name、slug、version、icon、splash 配置正确。
-- [ ] Android package name 确认无误。
-- [ ] iOS bundle identifier 确认无误。
+- [ ] `app.json` 中 app name 为 `One Tomato`。
+- [ ] `app.json` 中 slug 为 `one-tomato`。
+- [ ] `app.json` 中 version 与本次发布版本一致。
+- [ ] Android package name 确认无误：`com.yeekox.onetomato`。
+- [ ] iOS bundle identifier 确认无误：`com.yeekox.onetomato`。
+- [ ] EAS 远端 Android versionCode 已初始化或已递增。
+- [ ] EAS 远端 iOS buildNumber 已初始化或已递增。
 - [ ] App icon 在浅色/深色背景下清晰。
 - [ ] Splash 图在不同屏幕比例下不变形。
 - [ ] 权限声明没有多余权限。
+- [ ] `docs/release-build-notes.md` 中的发布标识与实际包一致。
 
 ## 7. 打包前
 
 - [ ] 清理本地开发缓存后仍可启动。
 - [ ] 生产包中隐藏开发工具。
+- [ ] `eas.json` 中 `preview` / `production` 的 `EXPO_PUBLIC_SHOW_DEV_TIMER_CONTROLS` 为 `false`。
 - [ ] 测试账号/示例数据策略已确认。
 - [ ] 隐私说明已确认：本地优先、无后端同步。
-- [ ] 版本号与构建号已递增。
+- [ ] version 已按本次发布更新，EAS 远端构建号已递增。
 - [ ] 记录本次发布的已知问题与回归范围。
 
 ## 8. 提审前记录

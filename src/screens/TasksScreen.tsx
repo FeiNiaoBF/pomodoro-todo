@@ -14,6 +14,7 @@ import { useTasks } from '../hooks/useTasks';
 import { useTranslation } from '../hooks/useTranslation';
 import { tokens } from '../theme/tokens';
 import { Task } from '../types/task';
+import { getTaskDisplayDescription, getTaskDisplayTitle } from '../utils/taskDisplay';
 import { getTaskStateLabel } from '../utils/taskLabels';
 import { formatTomatoProgress } from '../utils/tomatoProgress';
 
@@ -67,6 +68,11 @@ export function TasksScreen() {
     backlog: backlogTasks.length,
     completed: completedTasks.length,
   };
+  const activeTabGuide = activeTab === 'today'
+    ? t('tasks.tabGuide.today')
+    : activeTab === 'backlog'
+      ? t('tasks.tabGuide.backlog')
+      : t('tasks.tabGuide.completed');
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -155,6 +161,18 @@ export function TasksScreen() {
           })}
         </View>
 
+        <View
+          style={[
+            styles.tabGuideCard,
+            {
+              backgroundColor: theme.colors.cardTranslucent,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
+          <Text style={[styles.tabGuideText, { color: theme.colors.muted }]}>{activeTabGuide}</Text>
+        </View>
+
         <View style={styles.list}>
           {displayTasks.length === 0 ? (
             <View
@@ -212,6 +230,8 @@ function TaskCard({
   const theme = useAppTheme();
   const { language, t } = useTranslation();
   const stateLabel = isCurrentTask ? t('task.currentFocus') : getTaskStateLabel(task.state, language);
+  const displayTitle = getTaskDisplayTitle(task, language);
+  const displayDescription = getTaskDisplayDescription(task, language);
 
   return (
     <View
@@ -234,9 +254,9 @@ function TaskCard({
         />
       </View>
 
-      <Text style={[styles.taskTitle, { color: theme.colors.text }]}>{task.title}</Text>
-      {task.description ? (
-        <Text style={[styles.taskDescription, { color: theme.colors.muted }]}>{task.description}</Text>
+      <Text style={[styles.taskTitle, { color: theme.colors.text }]}>{displayTitle}</Text>
+      {displayDescription ? (
+        <Text style={[styles.taskDescription, { color: theme.colors.muted }]}>{displayDescription}</Text>
       ) : null}
 
       <Text style={[styles.taskMeta, { color: theme.colors.muted }]}>
@@ -524,6 +544,20 @@ const styles = StyleSheet.create({
   },
   tabChipTextActive: {
     color: tokens.colors.primaryHover,
+  },
+  tabGuideCard: {
+    borderRadius: tokens.radius.card,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: tokens.colors.cardTranslucent,
+    borderWidth: 1,
+    borderColor: tokens.colors.outline,
+  },
+  tabGuideText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: tokens.colors.muted,
+    fontFamily: tokens.typography.bodyFamily,
   },
   list: {
     gap: 14,

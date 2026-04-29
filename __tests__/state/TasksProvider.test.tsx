@@ -19,10 +19,10 @@ describe('TasksProvider', () => {
 
     await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
-    expect(result.current.tasks).toHaveLength(6);
-    expect(result.current.todayTasks).toHaveLength(3);
-    expect(result.current.backlogTasks).toHaveLength(2);
-    expect(result.current.completedTasks).toHaveLength(1);
+    expect(result.current.tasks).toHaveLength(3);
+    expect(result.current.todayTasks).toHaveLength(2);
+    expect(result.current.backlogTasks).toHaveLength(1);
+    expect(result.current.completedTasks).toHaveLength(0);
     expect(result.current.currentTask?.id).toBe('task-current');
   });
 

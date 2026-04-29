@@ -18,6 +18,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { RootStackParamList } from '../navigation/types';
 import { tokens } from '../theme/tokens';
 import { getTimeOfDayGreeting } from '../utils/dateLabels';
+import { getTaskDisplayDescription, getTaskDisplayTitle } from '../utils/taskDisplay';
 import { formatDailyGoalProgress } from '../utils/tomatoProgress';
 
 function formatRemainingTime(seconds: number) {
@@ -59,6 +60,7 @@ export function TodayScreen() {
   const displayedUpNextTasks = focusTask
     ? upNextTasks.filter(task => task.id !== focusTask.id)
     : upNextTasks;
+  const hasCompletedToday = completedToday > 0;
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -97,28 +99,42 @@ export function TodayScreen() {
           <Text style={[styles.title, { color: theme.colors.text }]}>{t('today.title')}</Text>
         </View>
 
-        <View
-          style={[
-            styles.progressCard,
-            {
-              backgroundColor: theme.colors.cardStrong,
-              borderColor: theme.colors.outline,
-            },
-          ]}
-        >
-          <View style={styles.progressHeader}>
-            <Text style={[styles.progressLabel, { color: theme.colors.muted }]}>{t('today.completed')}</Text>
-            <View style={styles.progressSummaryRow}>
-              <Text style={[styles.progressValue, { color: theme.colors.text }]}>{dailyProgress.primaryText}</Text>
-              {dailyProgress.secondaryText ? (
-                <Text style={[styles.progressSecondary, { color: theme.colors.primaryHover }]}>
-                  {dailyProgress.secondaryText}
-                </Text>
-              ) : null}
+        {hasCompletedToday ? (
+          <View
+            style={[
+              styles.progressCard,
+              {
+                backgroundColor: theme.colors.cardStrong,
+                borderColor: theme.colors.outline,
+              },
+            ]}
+          >
+            <View style={styles.progressHeader}>
+              <Text style={[styles.progressLabel, { color: theme.colors.muted }]}>{t('today.completed')}</Text>
+              <View style={styles.progressSummaryRow}>
+                <Text style={[styles.progressValue, { color: theme.colors.text }]}>{dailyProgress.primaryText}</Text>
+                {dailyProgress.secondaryText ? (
+                  <Text style={[styles.progressSecondary, { color: theme.colors.primaryHover }]}>
+                    {dailyProgress.secondaryText}
+                  </Text>
+                ) : null}
+              </View>
             </View>
+            <SegmentedProgressBar total={dailyProgress.total} completed={dailyProgress.completed} />
           </View>
-          <SegmentedProgressBar total={dailyProgress.total} completed={dailyProgress.completed} />
-        </View>
+        ) : (
+          <View
+            style={[
+              styles.firstStepCard,
+              {
+                backgroundColor: theme.colors.cardTranslucent,
+                borderColor: theme.colors.outline,
+              },
+            ]}
+          >
+            <Text style={[styles.firstStepText, { color: theme.colors.muted }]}>{t('today.firstStepHint')}</Text>
+          </View>
+        )}
 
         {!isHydrated ? (
           <View
@@ -137,8 +153,8 @@ export function TodayScreen() {
           <>
             <CurrentTaskHeroCard
               label={t('today.currentTomato')}
-              title={focusTask.title}
-              description={focusTask.description ?? ''}
+              title={getTaskDisplayTitle(focusTask, language)}
+              description={getTaskDisplayDescription(focusTask, language)}
               completedTomatoes={focusTask.completedTomatoes}
               totalTomatoes={focusTask.estimatedTomatoes}
               badgeText={shouldContinueTomato ? t('today.savedTimerBadge') : undefined}
@@ -224,7 +240,9 @@ export function TodayScreen() {
                   ]}
                 >
                   <View style={styles.queueTextWrap}>
-                    <Text style={[styles.queueTitle, { color: theme.colors.text }]}>{task.title}</Text>
+                    <Text style={[styles.queueTitle, { color: theme.colors.text }]}>
+                      {getTaskDisplayTitle(task, language)}
+                    </Text>
                     <TomatoDots
                       total={task.estimatedTomatoes}
                       completed={task.completedTomatoes}
@@ -363,6 +381,21 @@ const styles = StyleSheet.create({
     color: tokens.colors.text,
     fontFamily: tokens.typography.headingFamily,
     fontWeight: '700',
+  },
+  firstStepCard: {
+    width: '100%',
+    maxWidth: '100%',
+    backgroundColor: tokens.colors.cardTranslucent,
+    borderRadius: tokens.radius.modal,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: tokens.colors.outline,
+  },
+  firstStepText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: tokens.colors.muted,
+    fontFamily: tokens.typography.bodyFamily,
   },
   stateCard: {
     borderRadius: tokens.radius.hero,

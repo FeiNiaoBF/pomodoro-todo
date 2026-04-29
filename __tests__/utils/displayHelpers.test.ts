@@ -1,6 +1,7 @@
 import { getTimeOfDayGreeting, getWeekdayLabel } from '../../src/utils/dateLabels';
 import { shouldShowDevTimerControls } from '../../src/utils/devControls';
 import { getVisibleBarPercent } from '../../src/utils/chartScales';
+import { getTaskDisplayDescription, getTaskDisplayTitle } from '../../src/utils/taskDisplay';
 import { getTaskStateLabel } from '../../src/utils/taskLabels';
 import {
   formatDailyGoalProgress,
@@ -70,6 +71,30 @@ describe('date display helpers', () => {
 });
 
 describe('task and development display helpers', () => {
+  const tutorialTask = {
+    id: 'task-current',
+    title: 'Start your first tomato',
+    description: 'Tap Start Tomato and complete one focus session.',
+    estimatedTomatoes: 1,
+    completedTomatoes: 0,
+    state: 'today' as const,
+    createdAt: 1,
+    updatedAt: 1,
+  };
+
+  const userTask = {
+    ...tutorialTask,
+    id: 'user-task',
+    title: 'Do not translate this',
+    description: 'Keep user copy unchanged',
+  };
+
+  it('localizes built-in tutorial tasks only', () => {
+    expect(getTaskDisplayTitle(tutorialTask, 'zh-Hans')).toBe('开始第一轮番茄');
+    expect(getTaskDisplayDescription(tutorialTask, 'zh-Hans')).toBe('点击开始番茄，完成一轮专注。');
+    expect(getTaskDisplayTitle(userTask, 'zh-Hans')).toBe('Do not translate this');
+  });
+
   it('maps task states to user-facing labels', () => {
     expect(getTaskStateLabel('active')).toBe('Current focus');
     expect(getTaskStateLabel('paused')).toBe('Saved for later');

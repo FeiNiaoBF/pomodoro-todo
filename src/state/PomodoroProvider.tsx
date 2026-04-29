@@ -16,7 +16,7 @@ import {
   PomodoroStatus,
 } from '../types/pomodoro';
 import { Task } from '../types/task';
-import { currentFocusTask, sampleCompletedSessions } from '../data/todaySample';
+import { currentFocusTask } from '../data/todaySample';
 import { useSettings } from '../hooks/useSettings';
 import { useTasks } from '../hooks/useTasks';
 import { activeTimerStorage } from '../storage/activeTimerStorage';
@@ -32,6 +32,16 @@ import {
 
 const DEFAULT_FOCUS_DURATION_SECONDS = 25 * 60;
 const DAILY_GOAL = 8;
+const LEGACY_SAMPLE_SESSION_IDS = new Set(['session-1', 'session-2', 'session-3']);
+
+function removeLegacySampleSessions(sessions: PomodoroSession[]) {
+  const filteredSessions = sessions.filter(session => !LEGACY_SAMPLE_SESSION_IDS.has(session.id));
+
+  return {
+    sessions: filteredSessions,
+    changed: filteredSessions.length !== sessions.length,
+  };
+}
 
 interface PomodoroContextValue extends PomodoroStateSnapshot {
   startTomato: (task: Task) => void;
@@ -79,9 +89,9 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
   const [currentMode, setCurrentMode] = useState<PomodoroStateSnapshot['currentMode']>('idle');
   const [status, setStatus] = useState<PomodoroStatus>('idle');
   const [remainingSeconds, setRemainingSeconds] = useState(DEFAULT_FOCUS_DURATION_SECONDS);
-  const [completedSessions, setCompletedSessions] = useState<PomodoroSession[]>(sampleCompletedSessions);
+  const [completedSessions, setCompletedSessions] = useState<PomodoroSession[]>([]);
   const [interruptions, setInterruptions] = useState<Interruption[]>([]);
-  const [focusSessionIndex, setFocusSessionIndex] = useState(2);
+  const [focusSessionIndex, setFocusSessionIndex] = useState(1);
   const [isHydrated, setIsHydrated] = useState(false);
   const hydrationCompleteRef = useRef(false);
   const changedBeforeHydrationRef = useRef(false);
@@ -137,10 +147,17 @@ export function PomodoroProvider({ children }: { children: ReactNode }) {
       }
 
       if (!changedBeforeHydrationRef.current) {
-        let nextCompletedSessions = storedSessions ?? sampleCompletedSessions;
+        const normalizedStoredSessions = storedSessions
+          ? removeLegacySampleSessions(storedSessions)
+          : null;
+        let nextCompletedSessions = normalizedStoredSessions?.sessions ?? [];
 
         if (storedSessions) {
           setCompletedSessions(nextCompletedSessions);
+
+          if (normalizedStoredSessions?.changed) {
+            pomodoroStorage.saveCompletedSessions(nextCompletedSessions);
+          }
         }
 
         if (storedInterruptions) {

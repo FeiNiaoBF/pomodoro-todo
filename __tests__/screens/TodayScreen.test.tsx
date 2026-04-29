@@ -34,8 +34,9 @@ jest.mock('../../src/hooks/useTranslation', () => ({
         'common.settings': 'Settings',
         'today.title': "Today's Focus",
         'today.completed': 'Tomatoes completed today',
-        'today.preparingTitle': 'Preparing your focus rhythm...',
-        'today.preparingCopy': 'Small steps count.',
+        'today.firstStepHint': 'Start with one task. The count appears after your first completed tomato.',
+        'today.preparingTitle': 'Loading today...',
+        'today.preparingCopy': 'Your tasks will appear here.',
         'today.currentTomato': 'Current Tomato',
         'today.startTomato': 'Start Tomato',
         'today.blankTitle': 'Your day is a blank slate.',
@@ -99,7 +100,7 @@ describe('TodayScreen', () => {
 
     const screen = renderToday();
 
-    expect(screen.getByText('Preparing your focus rhythm...')).toBeTruthy();
+    expect(screen.getByText('Loading today...')).toBeTruthy();
   });
 
   it('renders an empty state when there is no current or today task', () => {

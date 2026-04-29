@@ -34,6 +34,7 @@ export type TranslationKey =
   | 'settings.increase'
   | 'today.title'
   | 'today.completed'
+  | 'today.firstStepHint'
   | 'today.currentTomato'
   | 'today.startTomato'
   | 'today.continueTomato'
@@ -92,6 +93,9 @@ export type TranslationKey =
   | 'tasks.backlog'
   | 'tasks.completed'
   | 'tasks.add'
+  | 'tasks.tabGuide.today'
+  | 'tasks.tabGuide.backlog'
+  | 'tasks.tabGuide.completed'
   | 'tasks.estimateLabel'
   | 'tasks.estimateHint'
   | 'tasks.completedLabel'
@@ -111,8 +115,6 @@ export type TranslationKey =
   | 'insights.currentHero'
   | 'insights.completedTomatoes'
   | 'insights.completedTomatoesHint'
-  | 'insights.completedTasks'
-  | 'insights.completedTasksHint'
   | 'insights.currentStreak'
   | 'insights.currentStreakHint'
   | 'insights.interruptions'
@@ -145,7 +147,13 @@ export type TranslationKey =
   | 'insights.simpleRead'
   | 'insights.oneTaskPlan'
   | 'insights.manyTasksPlan'
-  | 'insights.beyondPlan';
+  | 'insights.beyondPlan'
+  | 'tutorial.firstTomato.title'
+  | 'tutorial.firstTomato.description'
+  | 'tutorial.addTask.title'
+  | 'tutorial.addTask.description'
+  | 'tutorial.insights.title'
+  | 'tutorial.insights.description';
 
 const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
   en: {
@@ -180,18 +188,19 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'settings.increase': 'Increase',
     'today.title': "Today's Focus",
     'today.completed': 'Tomatoes completed today',
+    'today.firstStepHint': 'Start with one task. The count appears after your first completed tomato.',
     'today.currentTomato': 'Current Tomato',
     'today.startTomato': 'Start Tomato',
     'today.continueTomato': 'Continue Tomato',
     'today.savedTimerBadge': 'Saved',
     'today.savedTimerNote': '{time} left from your saved tomato.',
-    'today.preparingTitle': 'Preparing your focus rhythm...',
-    'today.preparingCopy': 'Small steps count.',
+    'today.preparingTitle': 'Loading today...',
+    'today.preparingCopy': 'Your tasks will appear here.',
     'today.blankTitle': 'Your day is a blank slate.',
     'today.blankCopy': 'Add one small task to begin.',
     'today.addTask': 'Add a task',
     'today.upNext': 'Up Next',
-    'today.keepLight': 'Keep it light',
+    'today.keepLight': 'Queue',
     'today.noNextTitle': 'No next task yet.',
     'today.noNextCopy': 'Keep one tomato in focus.',
     'greeting.morning': 'Good morning',
@@ -232,12 +241,15 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'break.nextTomato': 'Start next tomato',
     'break.doneForNow': 'Done for now',
     'tasks.title': 'Tasks',
-    'tasks.subtitle': 'Plan lightly. Focus clearly.',
+    'tasks.subtitle': 'Organize today, later, and done.',
     'tasks.quickAddPlaceholder': 'Add a small task',
     'tasks.quickAdd': 'Quick add',
     'tasks.backlog': 'Backlog',
     'tasks.completed': 'Completed',
     'tasks.add': 'Add',
+    'tasks.tabGuide.today': 'Today is for tasks you may work on now.',
+    'tasks.tabGuide.backlog': 'Backlog keeps tasks for later, without putting them in today.',
+    'tasks.tabGuide.completed': 'Completed stores tasks you have marked done.',
     'tasks.estimateLabel': 'Planned tomatoes',
     'tasks.estimateHint': 'Estimate how many focus rounds this task needs.',
     'tasks.completedLabel': 'Completed tomatoes',
@@ -251,19 +263,17 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'tasks.markComplete': 'Mark Complete',
     'tasks.archive': 'Archive',
     'insights.title': 'Insights',
-    'insights.subtitle': 'Your rhythm is starting to form.',
+    'insights.subtitle': "Review today's completed focus work.",
     'insights.today': 'Today',
-    'insights.gentleHero': 'Small steps count. Keep going gently.',
-    'insights.currentHero': 'Small steps count. Your current focus is {title}.',
+    'insights.gentleHero': 'No completed focus session yet today.',
+    'insights.currentHero': 'Current focus: {title}.',
     'insights.completedTomatoes': 'Completed tomatoes',
     'insights.completedTomatoesHint': 'Focus sessions finished today.',
-    'insights.completedTasks': 'Completed tasks',
-    'insights.completedTasksHint': 'Tasks marked done today.',
     'insights.currentStreak': 'Current streak',
-    'insights.currentStreakHint': 'A completed focus session keeps it alive.',
-    'insights.interruptions': 'Interruptions noted',
-    'insights.interruptionsHint': 'Interruptions logged during today\'s focus.',
-    'insights.focusTimeHint': 'Actual focused minutes completed today.',
+    'insights.currentStreakHint': 'Days with at least one completed focus session.',
+    'insights.interruptions': 'Interruptions',
+    'insights.interruptionsHint': 'Interruptions logged during focus today.',
+    'insights.focusTimeHint': 'Completed focus sessions only.',
     'insights.planChart': 'Today plan completion',
     'insights.planChartMeta': '{done} done · {planned} planned',
     'insights.done': 'Done',
@@ -274,7 +284,7 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'insights.interruptionChart': 'Interruption pattern',
     'insights.interruptionChartMeta': 'Today by reason',
     'insights.noInterruptions': 'No interruptions logged today.',
-    'insights.taskDetails': "Today's tasks",
+    'insights.taskDetails': 'Task list',
     'insights.taskDetailsMeta': '{count} in plan',
     'insights.noTaskDetails': 'No planned tasks yet.',
     'insights.reason.phone': 'Phone',
@@ -283,15 +293,21 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'insights.reason.self': 'Self',
     'insights.reason.other': 'Other',
     'insights.minutesShort': '{count}m',
-    'insights.starting': 'Starting',
+    'insights.starting': 'No streak',
     'insights.dayStreak': '1 day streak',
     'insights.taskProgress': 'Task progress',
     'insights.weeklyRhythm': 'Weekly rhythm',
     'insights.lightPreview': 'Light preview',
-    'insights.simpleRead': 'This is a simple read on completed focus sessions for now.',
-    'insights.oneTaskPlan': "1 task is part of today's plan.",
-    'insights.manyTasksPlan': "{count} tasks are part of today's plan.",
-    'insights.beyondPlan': "You went beyond today's plan.",
+    'insights.simpleRead': 'Each bar shows completed focus sessions for that day.',
+    'insights.oneTaskPlan': "1 task is in today's list.",
+    'insights.manyTasksPlan': "{count} tasks are in today's list.",
+    'insights.beyondPlan': "Completed more than today's plan.",
+    'tutorial.firstTomato.title': 'Start your first tomato',
+    'tutorial.firstTomato.description': 'Tap Start Tomato and complete one focus session.',
+    'tutorial.addTask.title': 'Add your own task',
+    'tutorial.addTask.description': 'Use Tasks to add something you want to finish today.',
+    'tutorial.insights.title': 'Read today in Insights',
+    'tutorial.insights.description': 'After a tomato, open Insights to review your focus time.',
   },
   'zh-Hans': {
     'common.back': '返回',
@@ -325,18 +341,19 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'settings.increase': '增加',
     'today.title': '今天的专注',
     'today.completed': '今天已完成番茄',
+    'today.firstStepHint': '先从一个任务开始。完成第一轮番茄后，这里会显示统计。',
     'today.currentTomato': '当前番茄',
     'today.startTomato': '开始番茄',
     'today.continueTomato': '继续番茄',
     'today.savedTimerBadge': '已保存',
     'today.savedTimerNote': '上次番茄还剩 {time}。',
-    'today.preparingTitle': '正在准备你的专注节奏...',
-    'today.preparingCopy': '小步前进也算数。',
+    'today.preparingTitle': '正在加载今天...',
+    'today.preparingCopy': '你的任务会显示在这里。',
     'today.blankTitle': '今天还没有安排。',
     'today.blankCopy': '先添加一个小任务。',
     'today.addTask': '添加任务',
     'today.upNext': '接下来',
-    'today.keepLight': '保持轻量',
+    'today.keepLight': '队列',
     'today.noNextTitle': '还没有下一个任务。',
     'today.noNextCopy': '一次只专注一个番茄。',
     'greeting.morning': '早上好',
@@ -377,12 +394,15 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'break.nextTomato': '开始下一个番茄',
     'break.doneForNow': '今天先到这里',
     'tasks.title': '任务',
-    'tasks.subtitle': '轻量计划，清晰专注。',
+    'tasks.subtitle': '安排今天、稍后和已完成。',
     'tasks.quickAddPlaceholder': '添加一个小任务',
     'tasks.quickAdd': '快速添加',
     'tasks.backlog': '待安排',
     'tasks.completed': '已完成',
     'tasks.add': '添加',
+    'tasks.tabGuide.today': '今天：放现在可能要做的任务。',
+    'tasks.tabGuide.backlog': '待安排：先记下来，暂时不放进今天。',
+    'tasks.tabGuide.completed': '已完成：保存你标记完成的任务。',
     'tasks.estimateLabel': '预计番茄',
     'tasks.estimateHint': '用来估算这个任务大约需要几轮专注。',
     'tasks.completedLabel': '已完成番茄',
@@ -396,19 +416,17 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'tasks.markComplete': '标记完成',
     'tasks.archive': '归档',
     'insights.title': '回顾',
-    'insights.subtitle': '你的节奏正在慢慢形成。',
+    'insights.subtitle': '查看今天已经完成的专注。',
     'insights.today': '今天',
-    'insights.gentleHero': '小步前进也算数。温和地继续。',
-    'insights.currentHero': '小步前进也算数。当前专注是 {title}。',
+    'insights.gentleHero': '今天还没有完成的专注。',
+    'insights.currentHero': '当前专注：{title}。',
     'insights.completedTomatoes': '已完成番茄',
     'insights.completedTomatoesHint': '今天完成的专注轮数。',
-    'insights.completedTasks': '已完成任务',
-    'insights.completedTasksHint': '今天标记完成的任务数。',
     'insights.currentStreak': '当前连续',
-    'insights.currentStreakHint': '今天完成专注后会延续。',
-    'insights.interruptions': '记录的打断',
-    'insights.interruptionsHint': '今天专注中记录的打断次数。',
-    'insights.focusTimeHint': '今天已完成的实际专注时间。',
+    'insights.currentStreakHint': '有完成专注的连续天数。',
+    'insights.interruptions': '打断次数',
+    'insights.interruptionsHint': '今天专注时记录的打断。',
+    'insights.focusTimeHint': '只统计已完成的专注轮次。',
     'insights.planChart': '今日计划完成度',
     'insights.planChartMeta': '已完成 {done} · 计划 {planned}',
     'insights.done': '已完成',
@@ -419,7 +437,7 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'insights.interruptionChart': '打断分布',
     'insights.interruptionChartMeta': '按今天记录的原因',
     'insights.noInterruptions': '今天还没有记录打断。',
-    'insights.taskDetails': '今日任务明细',
+    'insights.taskDetails': '任务列表',
     'insights.taskDetailsMeta': '计划内 {count} 个',
     'insights.noTaskDetails': '今天还没有计划任务。',
     'insights.reason.phone': '电话',
@@ -428,15 +446,21 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     'insights.reason.self': '自己',
     'insights.reason.other': '其他',
     'insights.minutesShort': '{count} 分钟',
-    'insights.starting': '刚开始',
+    'insights.starting': '暂无连续',
     'insights.dayStreak': '连续 1 天',
     'insights.taskProgress': '任务进度',
     'insights.weeklyRhythm': '本周节奏',
     'insights.lightPreview': '轻量预览',
-    'insights.simpleRead': '这里先简单展示已完成的专注次数。',
-    'insights.oneTaskPlan': '今天计划里有 1 个任务。',
-    'insights.manyTasksPlan': '今天计划里有 {count} 个任务。',
-    'insights.beyondPlan': '你已经超过了今天的计划。',
+    'insights.simpleRead': '每根柱子表示当天完成的专注轮数。',
+    'insights.oneTaskPlan': '今天列表里有 1 个任务。',
+    'insights.manyTasksPlan': '今天列表里有 {count} 个任务。',
+    'insights.beyondPlan': '已超过今天的计划。',
+    'tutorial.firstTomato.title': '开始第一轮番茄',
+    'tutorial.firstTomato.description': '点击开始番茄，完成一轮专注。',
+    'tutorial.addTask.title': '添加自己的任务',
+    'tutorial.addTask.description': '在任务页添加今天想完成的事情。',
+    'tutorial.insights.title': '查看今天的回顾',
+    'tutorial.insights.description': '完成番茄后，打开回顾查看专注时间。',
   },
 };
 

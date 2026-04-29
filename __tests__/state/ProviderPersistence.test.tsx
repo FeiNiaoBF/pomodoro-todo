@@ -64,12 +64,48 @@ describe('provider persistence', () => {
     expect(result.current.currentTask?.id).toBe(storedTask.id);
   });
 
+  it('TasksProvider migrates old sample tasks into tutorial tasks', async () => {
+    await AsyncStorage.setItem(STORAGE_KEYS.tasks, JSON.stringify([
+      {
+        id: 'task-current',
+        title: 'Draft Q3 Marketing Plan',
+        estimatedTomatoes: 3,
+        completedTomatoes: 2,
+        state: 'today',
+        createdAt: 100,
+        updatedAt: 200,
+      },
+      {
+        id: 'task-pr42',
+        title: 'Review PR #42',
+        estimatedTomatoes: 2,
+        completedTomatoes: 0,
+        state: 'today',
+        createdAt: 101,
+        updatedAt: 201,
+      },
+      storedTask,
+    ]));
+
+    const { result } = renderHook(() => useTasks(), { wrapper: TasksWrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
+
+    expect(result.current.tasks.find(task => task.id === 'task-current')).toMatchObject({
+      title: 'Start your first tomato',
+      completedTomatoes: 0,
+      estimatedTomatoes: 1,
+    });
+    expect(result.current.tasks.some(task => task.id === 'task-pr42')).toBe(false);
+    expect(result.current.tasks.find(task => task.id === storedTask.id)).toEqual(storedTask);
+  });
+
   it('TasksProvider falls back to seed tasks when storage is empty', async () => {
     const { result } = renderHook(() => useTasks(), { wrapper: TasksWrapper });
 
     await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
-    expect(result.current.tasks).toHaveLength(6);
+    expect(result.current.tasks).toHaveLength(3);
     expect(result.current.currentTask?.id).toBe('task-current');
     expect(AsyncStorage.setItem).not.toHaveBeenCalledWith(
       STORAGE_KEYS.tasks,
@@ -205,7 +241,7 @@ describe('provider persistence', () => {
 
     await waitFor(() => expect(result.current.isHydrated).toBe(true));
 
-    expect(result.current.tasks).toHaveLength(6);
+    expect(result.current.tasks).toHaveLength(3);
     expect(result.current.currentTask?.id).toBe('task-current');
 
     warnSpy.mockRestore();

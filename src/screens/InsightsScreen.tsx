@@ -15,6 +15,7 @@ import { TranslationKey } from '../i18n/translations';
 import { InterruptionReason } from '../types/pomodoro';
 import { getVisibleBarPercent } from '../utils/chartScales';
 import { getWeekdayLabel } from '../utils/dateLabels';
+import { getTaskDisplayTitle } from '../utils/taskDisplay';
 import { getTaskStateLabel } from '../utils/taskLabels';
 import { formatTomatoProgress } from '../utils/tomatoProgress';
 
@@ -76,12 +77,16 @@ export function InsightsScreen() {
   const theme = useAppTheme();
   const { language, t } = useTranslation();
   const { completedSessions, interruptions } = usePomodoro();
-  const { completedTasks, todayTasks, currentTask } = useTasks();
+  const { completedTasks, tasks, todayTasks, currentTask } = useTasks();
 
   const insights = useMemo(() => {
     const today = new Date();
+    const knownTaskIds = new Set(tasks.map(task => task.id));
     const focusSessions = completedSessions.filter(
-      session => session.mode === 'focus' && session.status === 'completed'
+      session =>
+        session.mode === 'focus' &&
+        session.status === 'completed' &&
+        knownTaskIds.has(session.taskId)
     );
     const focusSessionsToday = focusSessions.filter(session =>
       isSameDay(session.startedAt, today)
@@ -143,7 +148,7 @@ export function InsightsScreen() {
       interruptionBreakdown,
       taskDetails: todayPlanTasks.map(task => ({
         id: task.id,
-        title: task.title,
+        title: getTaskDisplayTitle(task, language),
         stateLabel: getTaskStateLabel(task.state, language),
         tomatoProgress: formatTomatoProgress(
           task.completedTomatoes,
@@ -152,12 +157,13 @@ export function InsightsScreen() {
         ),
       })),
     };
-  }, [completedSessions, completedTasks, interruptions, language, t, todayTasks]);
+  }, [completedSessions, completedTasks, interruptions, language, t, tasks, todayTasks]);
 
   const maxWeeklySeconds = Math.max(1, ...insights.weeklyRhythm.map(day => day.focusSeconds));
   const maxInterruptionCount = Math.max(1, ...insights.interruptionBreakdown.map(item => item.count));
-  const heroCopy = currentTask && !shouldUseGentleFocusCopy(currentTask.title)
-    ? t('insights.currentHero', { title: currentTask.title })
+  const currentTaskTitle = currentTask ? getTaskDisplayTitle(currentTask, language) : '';
+  const heroCopy = currentTask && !shouldUseGentleFocusCopy(currentTaskTitle)
+    ? t('insights.currentHero', { title: currentTaskTitle })
     : t('insights.gentleHero');
 
   return (
@@ -193,11 +199,6 @@ export function InsightsScreen() {
             label={t('insights.completedTomatoes')}
             value={String(insights.completedTomatoes)}
             hint={t('insights.completedTomatoesHint')}
-          />
-          <MetricCard
-            label={t('insights.completedTasks')}
-            value={`${insights.completedTasks}/${insights.plannedTaskCount}`}
-            hint={t('insights.completedTasksHint')}
           />
           <MetricCard
             label={t('insights.currentStreak')}

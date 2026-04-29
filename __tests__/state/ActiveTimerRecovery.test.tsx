@@ -330,7 +330,7 @@ describe('active timer recovery', () => {
 
     expect(result.current.pomodoro.completedSessions).toHaveLength(1);
     expect(result.current.tasks.tasks.find(task => task.id === snapshot.taskId)?.completedTomatoes)
-      .toBe(2);
+      .toBe(0);
     expect(result.current.pomodoro.currentMode).toBe('short_break');
     expect(result.current.pomodoro.status).toBe('running');
     expect((await readActiveTimer())?.mode).toBe('short_break');

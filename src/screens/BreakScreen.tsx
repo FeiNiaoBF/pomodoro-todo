@@ -13,10 +13,11 @@ import { usePomodoro } from '../hooks/usePomodoro';
 import { useTranslation } from '../hooks/useTranslation';
 import { RootStackParamList } from '../navigation/types';
 import { tokens } from '../theme/tokens';
+import { getTaskDisplayTitle } from '../utils/taskDisplay';
 
 export function BreakScreen() {
   const theme = useAppTheme();
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const {
@@ -124,7 +125,7 @@ export function BreakScreen() {
           >
             <Text style={[styles.previewLabel, { color: theme.colors.muted }]}>{t('break.next')}</Text>
             <Text style={[styles.previewText, { color: theme.colors.text }]}>
-              {nextTaskPreview ? nextTaskPreview.title : t('break.startAnother')}
+              {nextTaskPreview ? getTaskDisplayTitle(nextTaskPreview, language) : t('break.startAnother')}
             </Text>
           </View>
 

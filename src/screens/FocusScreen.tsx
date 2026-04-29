@@ -18,6 +18,7 @@ import { InterruptionReason } from '../types/pomodoro';
 import { tokens } from '../theme/tokens';
 import { shouldShowDevTimerControls } from '../utils/devControls';
 import { TranslationKey } from '../i18n/translations';
+import { getTaskDisplayDescription, getTaskDisplayTitle } from '../utils/taskDisplay';
 
 const INTERRUPTION_OPTIONS: Array<{ label: TranslationKey; value: InterruptionReason }> = [
   { label: 'focus.reason.phone', value: 'phone' },
@@ -29,7 +30,7 @@ const INTERRUPTION_OPTIONS: Array<{ label: TranslationKey; value: InterruptionRe
 
 export function FocusScreen() {
   const theme = useAppTheme();
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const {
@@ -145,9 +146,13 @@ export function FocusScreen() {
             {t('focus.sessionOf', { current: focusSessionIndex, total: 4 })}
           </Text>
           <Text style={[styles.currentFocusLabel, { color: theme.colors.primaryHover }]}>{t('task.currentFocus')}</Text>
-          <Text style={[styles.taskTitle, { color: theme.colors.text }]}>{currentTask.title}</Text>
-          {currentTask.description ? (
-            <Text style={[styles.taskDescription, { color: theme.colors.muted }]}>{currentTask.description}</Text>
+          <Text style={[styles.taskTitle, { color: theme.colors.text }]}>
+            {getTaskDisplayTitle(currentTask, language)}
+          </Text>
+          {getTaskDisplayDescription(currentTask, language) ? (
+            <Text style={[styles.taskDescription, { color: theme.colors.muted }]}>
+              {getTaskDisplayDescription(currentTask, language)}
+            </Text>
           ) : null}
         </View>
 
