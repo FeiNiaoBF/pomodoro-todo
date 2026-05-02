@@ -2,7 +2,7 @@
   "expo": {
     "name": "One Tomato",
     "slug": "one-tomato",
-    "version": "0.1.1-alpha.1-ai",
+    "version": "0.1.1-preview",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "one-tomato",

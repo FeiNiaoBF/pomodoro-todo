@@ -1,15 +1,21 @@
 {
   "name": "one-tomato",
-  "version": "0.1.0",
+  "version": "0.1.1-preview",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "verify": "npx tsc --noEmit && npm test -- --runInBand && git diff --check",
+    "build:quick": "node scripts/quick-build.js",
+    "build:quick:android": "node scripts/quick-build.js --platform android --profile preview",
+    "build:quick:ios": "node scripts/quick-build.js --platform ios --profile preview",
+    "build:quick:production": "node scripts/quick-build.js --platform all --profile production",
     "build:android:preview": "npx eas-cli build --platform android --profile preview",
     "build:ios:preview": "npx eas-cli build --platform ios --profile preview",
     "build:production": "npx eas-cli build --platform all --profile production",
+    "tag:release": "node scripts/create-release-tag.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
