@@ -5,6 +5,11 @@ const path = require('node:path');
 
 const rootDir = path.resolve(__dirname, '..');
 const appConfig = require(path.join(rootDir, 'app.json'));
+const localBins = {
+  eas: path.join(rootDir, 'node_modules', 'eas-cli', 'bin', 'run'),
+  jest: path.join(rootDir, 'node_modules', 'jest', 'bin', 'jest.js'),
+  tsc: path.join(rootDir, 'node_modules', 'typescript', 'bin', 'tsc'),
+};
 
 const VALID_PLATFORMS = new Set(['android', 'ios', 'all']);
 const VALID_PROFILES = new Set(['development', 'preview', 'production']);
@@ -72,23 +77,52 @@ function parseArgs(argv) {
 
 function run(label, command, args) {
   console.log(`\n> ${label}`);
-  const result = spawnSync(resolveCommand(command), args, {
+  const invocation = resolveInvocation(command, args);
+  const result = spawnSync(invocation.command, invocation.args, {
     cwd: rootDir,
     encoding: 'utf8',
     stdio: 'inherit',
   });
+
+  if (result.error) {
+    fail(`${label} failed to start: ${result.error.message}`);
+  }
 
   if (result.status !== 0) {
     fail(`${label} failed.`);
   }
 }
 
-function resolveCommand(command) {
-  if (process.platform !== 'win32') {
-    return command;
+function resolveInvocation(command, args) {
+  if (command === 'tsc') {
+    return { command: process.execPath, args: [localBins.tsc, ...args] };
   }
 
-  return command === 'npm' || command === 'npx' ? `${command}.cmd` : command;
+  if (command === 'jest') {
+    return { command: process.execPath, args: [localBins.jest, ...args] };
+  }
+
+  if (command === 'eas' && fileExists(localBins.eas)) {
+    return { command: process.execPath, args: [localBins.eas, ...args] };
+  }
+
+  if (command === 'eas') {
+    return resolveInvocation('npx', ['eas-cli', ...args]);
+  }
+
+  if (process.platform === 'win32' && (command === 'npm' || command === 'npx')) {
+    return { command: `${command}.cmd`, args };
+  }
+
+  return { command, args };
+}
+
+function fileExists(filePath) {
+  try {
+    return require('node:fs').existsSync(filePath);
+  } catch {
+    return false;
+  }
 }
 
 function fail(message) {
@@ -111,13 +145,12 @@ console.log(`Build profile: ${args.profile}`);
 console.log(`Platform: ${args.platform}`);
 
 if (!args.skipChecks) {
-  run('TypeScript check', 'npx', ['tsc', '--noEmit']);
-  run('Jest tests', 'npm', ['test', '--', '--runInBand']);
+  run('TypeScript check', 'tsc', ['--noEmit']);
+  run('Jest tests', 'jest', ['--runInBand']);
   run('Git whitespace check', 'git', ['diff', '--check']);
 }
 
 const easArgs = [
-  'eas-cli',
   'build',
   '--platform',
   args.platform,
@@ -135,8 +168,8 @@ if (args.local) {
 
 if (args.dryRun) {
   console.log('\nDry run complete. EAS build was not started.');
-  console.log(`Would run: npx ${easArgs.join(' ')}`);
+  console.log(`Would run: eas ${easArgs.join(' ')}`);
   process.exit(0);
 }
 
-run('EAS build', 'npx', easArgs);
+run('EAS build', 'eas', easArgs);
