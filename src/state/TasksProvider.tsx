@@ -27,6 +27,7 @@ interface TasksContextValue {
   todayTasks: Task[];
   backlogTasks: Task[];
   completedTasks: Task[];
+  archivedTasks: Task[];
   currentTask: Task | null;
   upNextTasks: Task[];
   nextTaskPreview: Task | null;
@@ -35,6 +36,8 @@ interface TasksContextValue {
   updateTask: (id: string, patch: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   moveTaskToToday: (id: string) => void;
+  moveTaskToBacklog: (id: string) => void;
+  reorderTodayTask: (id: string, direction: 'up' | 'down') => void;
   setCurrentTask: (id: string) => void;
   archiveTask: (id: string) => void;
   completeTask: (id: string) => void;
@@ -43,12 +46,24 @@ interface TasksContextValue {
 
 const TasksContext = createContext<TasksContextValue | null>(null);
 
-function sortByCreatedAt(tasks: Task[]) {
-  return [...tasks].sort((a, b) => a.createdAt - b.createdAt);
+function getTaskSortOrder(task: Task) {
+  return task.sortOrder ?? task.createdAt;
+}
+
+function sortByPlanOrder(tasks: Task[]) {
+  return [...tasks].sort((a, b) => {
+    const orderDiff = getTaskSortOrder(a) - getTaskSortOrder(b);
+
+    return orderDiff !== 0 ? orderDiff : a.createdAt - b.createdAt;
+  });
+}
+
+function isTodayPlanTask(task: Task) {
+  return task.state === 'today' || task.state === 'active' || task.state === 'paused';
 }
 
 export function TasksProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState<Task[]>(sortByCreatedAt(initialTasks));
+  const [tasks, setTasks] = useState<Task[]>(sortByPlanOrder(initialTasks));
   const [isHydrated, setIsHydrated] = useState(false);
   const hydrationCompleteRef = useRef(false);
   const changedBeforeHydrationRef = useRef(false);
@@ -73,7 +88,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
       if (storedTasks && !changedBeforeHydrationRef.current) {
         const normalized = normalizeSeedTasks(storedTasks);
-        setTasks(sortByCreatedAt(normalized.tasks));
+        setTasks(sortByPlanOrder(normalized.tasks));
 
         if (normalized.changed) {
           tasksStorage.saveTasks(normalized.tasks);
@@ -138,6 +153,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       dueDate: input.dueDate,
       createdAt: now,
       updatedAt: now,
+      sortOrder: now,
     };
 
     setTasks(prev => [...prev, nextTask]);
@@ -149,8 +165,73 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   }, [markTaskMutation]);
 
   const moveTaskToToday = useCallback((id: string) => {
-    updateTask(id, { state: 'today' });
+    markTaskMutation();
+    setTasks(prev => {
+      const lastTodayOrder = Math.max(
+        0,
+        ...prev.filter(isTodayPlanTask).map(getTaskSortOrder)
+      );
+
+      return prev.map(task =>
+        task.id === id
+          ? {
+              ...task,
+              state: 'today',
+              sortOrder: lastTodayOrder + 1,
+              updatedAt: Date.now(),
+            }
+          : task
+      );
+    });
+  }, [markTaskMutation]);
+
+  const moveTaskToBacklog = useCallback((id: string) => {
+    updateTask(id, { state: 'backlog' });
   }, [updateTask]);
+
+  const reorderTodayTask = useCallback((id: string, direction: 'up' | 'down') => {
+    markTaskMutation();
+    setTasks(prev => {
+      const orderedTodayTasks = sortByPlanOrder(prev.filter(isTodayPlanTask));
+      const currentIndex = orderedTodayTasks.findIndex(task => task.id === id);
+
+      if (currentIndex < 0) {
+        return prev;
+      }
+
+      const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      const currentTask = orderedTodayTasks[currentIndex];
+      const targetTask = orderedTodayTasks[targetIndex];
+
+      if (!targetTask) {
+        return prev;
+      }
+
+      const currentOrder = getTaskSortOrder(currentTask);
+      const targetOrder = getTaskSortOrder(targetTask);
+      const now = Date.now();
+
+      return prev.map(task => {
+        if (task.id === currentTask.id) {
+          return {
+            ...task,
+            sortOrder: targetOrder,
+            updatedAt: now,
+          };
+        }
+
+        if (task.id === targetTask.id) {
+          return {
+            ...task,
+            sortOrder: currentOrder,
+            updatedAt: now,
+          };
+        }
+
+        return task;
+      });
+    });
+  }, [markTaskMutation]);
 
   const setCurrentTask = useCallback((id: string) => {
     markTaskMutation();
@@ -205,29 +286,27 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
   const currentTask = useMemo(() => {
     return (
-      tasks.find(task => task.state === 'active') ??
-      tasks.find(task => task.state === 'paused') ??
-      tasks.find(task => task.state === 'today') ??
+      sortByPlanOrder(tasks).find(task => task.state === 'active') ??
+      sortByPlanOrder(tasks).find(task => task.state === 'paused') ??
+      sortByPlanOrder(tasks).find(task => task.state === 'today') ??
       null
     );
   }, [tasks]);
 
   const todayTasks = useMemo(() => {
-    return sortByCreatedAt(
-      tasks.filter(task =>
-        task.state === 'today' ||
-        task.state === 'active' ||
-        task.state === 'paused'
-      )
-    );
+    return sortByPlanOrder(tasks.filter(isTodayPlanTask));
   }, [tasks]);
 
   const backlogTasks = useMemo(() => {
-    return sortByCreatedAt(tasks.filter(task => task.state === 'backlog'));
+    return sortByPlanOrder(tasks.filter(task => task.state === 'backlog'));
   }, [tasks]);
 
   const completedTasks = useMemo(() => {
-    return sortByCreatedAt(tasks.filter(task => task.state === 'completed'));
+    return sortByPlanOrder(tasks.filter(task => task.state === 'completed'));
+  }, [tasks]);
+
+  const archivedTasks = useMemo(() => {
+    return sortByPlanOrder(tasks.filter(task => task.state === 'archived'));
   }, [tasks]);
 
   const upNextTasks = useMemo(() => {
@@ -245,6 +324,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     todayTasks,
     backlogTasks,
     completedTasks,
+    archivedTasks,
     currentTask,
     upNextTasks,
     nextTaskPreview,
@@ -253,6 +333,8 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     updateTask,
     deleteTask,
     moveTaskToToday,
+    moveTaskToBacklog,
+    reorderTodayTask,
     setCurrentTask,
     archiveTask,
     completeTask,
@@ -260,6 +342,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   }), [
     addTask,
     archiveTask,
+    archivedTasks,
     backlogTasks,
     completeTask,
     completedTasks,
@@ -267,8 +350,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     deleteTask,
     incrementCompletedTomatoes,
     isHydrated,
+    moveTaskToBacklog,
     moveTaskToToday,
     nextTaskPreview,
+    reorderTodayTask,
     setCurrentTask,
     tasks,
     todayTasks,

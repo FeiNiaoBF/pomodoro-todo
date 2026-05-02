@@ -1,4 +1,5 @@
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
+import { useEffect } from 'react';
 import { useFonts } from 'expo-font';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
@@ -33,6 +34,34 @@ export default function App() {
 
 function AppContent() {
   const theme = useAppTheme();
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') {
+      return;
+    }
+
+    const styleId = 'one-tomato-web-layout-reset';
+
+    if (document.getElementById(styleId)) {
+      return;
+    }
+
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      html, body, #root {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        overflow-x: hidden;
+      }
+
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+    `;
+    document.head.appendChild(style);
+  }, []);
 
   return (
     <NavigationContainer>

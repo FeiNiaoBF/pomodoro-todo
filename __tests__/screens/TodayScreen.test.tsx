@@ -6,6 +6,8 @@ import { Task } from '../../src/types/task';
 const mockNavigate = jest.fn();
 const mockStartTomato = jest.fn();
 const mockSetCurrentTask = jest.fn();
+const mockMoveTaskToBacklog = jest.fn();
+const mockReorderTodayTask = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -44,8 +46,13 @@ jest.mock('../../src/hooks/useTranslation', () => ({
         'today.addTask': 'Add a task',
         'today.upNext': 'Up Next',
         'today.keepLight': 'Keep it light',
+        'today.arrange': 'Arrange',
+        'today.doneArranging': 'Done',
+        'today.removeFromToday': 'Remove today',
         'today.noNextTitle': 'No next task yet.',
         'today.noNextCopy': 'Keep one tomato in focus.',
+        'tasks.moveUp': 'Move up',
+        'tasks.moveDown': 'Move down',
         'task.readyNow': 'Ready now',
       };
 
@@ -73,6 +80,16 @@ const todayTask: Task = {
   updatedAt: 100,
 };
 
+const secondTask: Task = {
+  id: 'second-task',
+  title: 'Second task',
+  estimatedTomatoes: 1,
+  completedTomatoes: 0,
+  state: 'today',
+  createdAt: 200,
+  updatedAt: 200,
+};
+
 function renderToday() {
   return render(<TodayScreen />);
 }
@@ -86,6 +103,8 @@ describe('TodayScreen', () => {
       upNextTasks: [],
       isHydrated: true,
       setCurrentTask: mockSetCurrentTask,
+      moveTaskToBacklog: mockMoveTaskToBacklog,
+      reorderTodayTask: mockReorderTodayTask,
     });
   });
 
@@ -96,6 +115,8 @@ describe('TodayScreen', () => {
       upNextTasks: [],
       isHydrated: false,
       setCurrentTask: mockSetCurrentTask,
+      moveTaskToBacklog: mockMoveTaskToBacklog,
+      reorderTodayTask: mockReorderTodayTask,
     });
 
     const screen = renderToday();
@@ -110,6 +131,8 @@ describe('TodayScreen', () => {
       upNextTasks: [],
       isHydrated: true,
       setCurrentTask: mockSetCurrentTask,
+      moveTaskToBacklog: mockMoveTaskToBacklog,
+      reorderTodayTask: mockReorderTodayTask,
     });
 
     const screen = renderToday();
@@ -129,6 +152,8 @@ describe('TodayScreen', () => {
       upNextTasks: [todayTask],
       isHydrated: true,
       setCurrentTask: mockSetCurrentTask,
+      moveTaskToBacklog: mockMoveTaskToBacklog,
+      reorderTodayTask: mockReorderTodayTask,
     });
 
     const screen = renderToday();
@@ -140,5 +165,28 @@ describe('TodayScreen', () => {
     expect(mockSetCurrentTask).toHaveBeenCalledWith(todayTask.id);
     expect(mockStartTomato).toHaveBeenCalledWith(todayTask);
     expect(mockNavigate).toHaveBeenCalledWith('Focus');
+  });
+
+  it('reveals Today queue arrangement controls after long press', () => {
+    mockUseTasks.mockReturnValue({
+      currentTask: todayTask,
+      todayTasks: [todayTask, secondTask],
+      upNextTasks: [secondTask],
+      isHydrated: true,
+      setCurrentTask: mockSetCurrentTask,
+      moveTaskToBacklog: mockMoveTaskToBacklog,
+      reorderTodayTask: mockReorderTodayTask,
+    });
+
+    const screen = renderToday();
+
+    fireEvent(screen.getByLabelText(secondTask.title), 'onLongPress');
+    fireEvent.press(screen.getByLabelText('Move up'));
+
+    expect(mockReorderTodayTask).toHaveBeenCalledWith(secondTask.id, 'up');
+
+    fireEvent.press(screen.getByText('Remove today'));
+
+    expect(mockMoveTaskToBacklog).toHaveBeenCalledWith(secondTask.id);
   });
 });

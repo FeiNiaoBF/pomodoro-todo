@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -31,6 +32,7 @@ function formatRemainingTime(seconds: number) {
 export function TodayScreen() {
   const theme = useAppTheme();
   const { language, t } = useTranslation();
+  const webViewportWidth = useWebViewportWidth();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { activeSession, completedSessions, dailyGoal, remainingSeconds, startTomato, status } = usePomodoro();
   const {
@@ -38,8 +40,11 @@ export function TodayScreen() {
     todayTasks,
     upNextTasks,
     isHydrated,
+    moveTaskToBacklog,
+    reorderTodayTask,
     setCurrentTask,
   } = useTasks();
+  const [arrangingTaskId, setArrangingTaskId] = useState<string | null>(null);
 
   const completedToday = completedSessions.filter(
     session => session.mode === 'focus' && session.status === 'completed'
@@ -61,6 +66,15 @@ export function TodayScreen() {
     ? upNextTasks.filter(task => task.id !== focusTask.id)
     : upNextTasks;
   const hasCompletedToday = completedToday > 0;
+  const arrangingTaskExists = displayedUpNextTasks.some(task => task.id === arrangingTaskId);
+  const activeArrangingTaskId = arrangingTaskExists ? arrangingTaskId : null;
+  const webContentWidth =
+    Platform.OS === 'web' && webViewportWidth
+      ? Math.max(280, Math.min(webViewportWidth - 40, 440))
+      : undefined;
+  const contentItemStyle = webContentWidth
+    ? { width: webContentWidth, alignSelf: 'center' as const }
+    : undefined;
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -77,7 +91,7 @@ export function TodayScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, styles.contentItem, contentItemStyle]}>
           <View style={styles.headerTopRow}>
             <Text style={[styles.greeting, { color: theme.colors.muted }]}>{getTimeOfDayGreeting(new Date(), language)}</Text>
             <Pressable
@@ -93,7 +107,7 @@ export function TodayScreen() {
                 pressed && styles.settingsButtonPressed,
               ]}
             >
-              <Text style={[styles.settingsButtonText, { color: theme.colors.muted }]}>{t('common.settings')}</Text>
+              <SettingsGlyph color={theme.colors.muted} />
             </Pressable>
           </View>
           <Text style={[styles.title, { color: theme.colors.text }]}>{t('today.title')}</Text>
@@ -103,6 +117,8 @@ export function TodayScreen() {
           <View
             style={[
               styles.progressCard,
+              styles.contentItem,
+              contentItemStyle,
               {
                 backgroundColor: theme.colors.cardStrong,
                 borderColor: theme.colors.outline,
@@ -126,6 +142,8 @@ export function TodayScreen() {
           <View
             style={[
               styles.firstStepCard,
+              styles.contentItem,
+              contentItemStyle,
               {
                 backgroundColor: theme.colors.cardTranslucent,
                 borderColor: theme.colors.outline,
@@ -140,6 +158,8 @@ export function TodayScreen() {
           <View
             style={[
               styles.stateCard,
+              styles.contentItem,
+              contentItemStyle,
               {
                 backgroundColor: theme.colors.surface,
                 borderColor: theme.colors.outline,
@@ -151,15 +171,17 @@ export function TodayScreen() {
           </View>
         ) : focusTask ? (
           <>
-            <CurrentTaskHeroCard
-              label={t('today.currentTomato')}
-              title={getTaskDisplayTitle(focusTask, language)}
-              description={getTaskDisplayDescription(focusTask, language)}
-              completedTomatoes={focusTask.completedTomatoes}
-              totalTomatoes={focusTask.estimatedTomatoes}
-              badgeText={shouldContinueTomato ? t('today.savedTimerBadge') : undefined}
-              footerNote={savedTimerNote}
-            />
+            <View style={[styles.contentItem, contentItemStyle]}>
+              <CurrentTaskHeroCard
+                label={t('today.currentTomato')}
+                title={getTaskDisplayTitle(focusTask, language)}
+                description={getTaskDisplayDescription(focusTask, language)}
+                completedTomatoes={focusTask.completedTomatoes}
+                totalTomatoes={focusTask.estimatedTomatoes}
+                badgeText={shouldContinueTomato ? t('today.savedTimerBadge') : undefined}
+                footerNote={savedTimerNote}
+              />
+            </View>
 
             <Pressable
               accessibilityRole="button"
@@ -172,6 +194,8 @@ export function TodayScreen() {
               }}
               style={({ pressed }) => [
                 styles.primaryButton,
+                styles.contentItem,
+                contentItemStyle,
                 { backgroundColor: theme.colors.primary },
                 pressed && styles.primaryButtonPressed,
               ]}
@@ -184,6 +208,8 @@ export function TodayScreen() {
           <View
             style={[
               styles.stateCard,
+              styles.contentItem,
+              contentItemStyle,
               {
                 backgroundColor: theme.colors.surface,
                 borderColor: theme.colors.outline,
@@ -207,10 +233,12 @@ export function TodayScreen() {
           </View>
         )}
 
-        <View style={styles.upNextSection}>
+        <View style={[styles.upNextSection, styles.contentItem, contentItemStyle]}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('today.upNext')}</Text>
-            <Text style={[styles.sectionMeta, { color: theme.colors.muted }]}>{t('today.keepLight')}</Text>
+            <Text style={[styles.sectionMeta, { color: theme.colors.muted }]}>
+              {activeArrangingTaskId ? t('today.arrange') : t('today.keepLight')}
+            </Text>
           </View>
 
           <View style={styles.queue}>
@@ -228,15 +256,25 @@ export function TodayScreen() {
                 <Text style={[styles.upNextEmptyCopy, { color: theme.colors.muted }]}>{t('today.noNextCopy')}</Text>
               </View>
             ) : (
-              displayedUpNextTasks.map((task, index) => (
-                <View
+              displayedUpNextTasks.map((task, index) => {
+                const todayTaskIndex = todayTasks.findIndex(item => item.id === task.id);
+                const isArranging = activeArrangingTaskId === task.id;
+
+                return (
+                <Pressable
                   key={task.id}
-                  style={[
+                  accessibilityRole="button"
+                  accessibilityLabel={getTaskDisplayTitle(task, language)}
+                  onLongPress={() => setArrangingTaskId(task.id)}
+                  delayLongPress={260}
+                  style={({ pressed }) => [
                     styles.queueCard,
+                    isArranging && styles.queueCardArranging,
                     {
-                      backgroundColor: theme.colors.cardTranslucent,
-                      borderColor: theme.colors.outline,
+                      backgroundColor: isArranging ? theme.colors.surface : theme.colors.cardTranslucent,
+                      borderColor: isArranging ? theme.colors.primary : theme.colors.outline,
                     },
+                    pressed && styles.queueCardPressed,
                   ]}
                 >
                   <View style={styles.queueTextWrap}>
@@ -253,13 +291,169 @@ export function TodayScreen() {
                   <View style={[styles.queueIndex, { backgroundColor: theme.colors.surfaceSoft }]}>
                     <Text style={[styles.queueIndexText, { color: theme.colors.primaryHover }]}>#{index + 1}</Text>
                   </View>
-                </View>
-              ))
+                  {isArranging ? (
+                    <View style={styles.arrangeControls}>
+                      <ArrangeButton
+                        label={t('tasks.moveUp')}
+                        disabled={todayTaskIndex <= 0}
+                        onPress={() => reorderTodayTask(task.id, 'up')}
+                      >
+                        ↑
+                      </ArrangeButton>
+                      <ArrangeButton
+                        label={t('tasks.moveDown')}
+                        disabled={todayTaskIndex < 0 || todayTaskIndex >= todayTasks.length - 1}
+                        onPress={() => reorderTodayTask(task.id, 'down')}
+                      >
+                        ↓
+                      </ArrangeButton>
+                      <ArrangeTextButton
+                        label={t('today.removeFromToday')}
+                        onPress={() => {
+                          moveTaskToBacklog(task.id);
+                          setArrangingTaskId(null);
+                        }}
+                      />
+                      <ArrangeTextButton
+                        label={t('today.doneArranging')}
+                        onPress={() => setArrangingTaskId(null)}
+                        primary
+                      />
+                    </View>
+                  ) : null}
+                </Pressable>
+                );
+              })
             )}
           </View>
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function getWebViewportWidth() {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') {
+    return undefined;
+  }
+
+  const widths = [window.visualViewport?.width, window.innerWidth, window.outerWidth].filter(
+    (width): width is number => typeof width === 'number' && width > 0
+  );
+
+  return widths.length > 0 ? Math.min(...widths) : undefined;
+}
+
+function useWebViewportWidth() {
+  const [viewportWidth, setViewportWidth] = useState(getWebViewportWidth);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') {
+      return;
+    }
+
+    const updateViewportWidth = () => setViewportWidth(getWebViewportWidth());
+
+    updateViewportWidth();
+    window.addEventListener('resize', updateViewportWidth);
+    window.visualViewport?.addEventListener('resize', updateViewportWidth);
+
+    return () => {
+      window.removeEventListener('resize', updateViewportWidth);
+      window.visualViewport?.removeEventListener('resize', updateViewportWidth);
+    };
+  }, []);
+
+  return viewportWidth;
+}
+
+function SettingsGlyph({ color }: { color: string }) {
+  return (
+    <View style={styles.settingsGlyph} pointerEvents="none">
+      <View style={[styles.settingsGlyphLine, { backgroundColor: color }]} />
+      <View style={[styles.settingsGlyphLine, { backgroundColor: color, width: 18 }]} />
+      <View style={[styles.settingsGlyphLine, { backgroundColor: color }]} />
+      <View style={[styles.settingsGlyphDot, styles.settingsGlyphDotTop, { backgroundColor: color }]} />
+      <View style={[styles.settingsGlyphDot, styles.settingsGlyphDotMiddle, { backgroundColor: color }]} />
+      <View style={[styles.settingsGlyphDot, styles.settingsGlyphDotBottom, { backgroundColor: color }]} />
+    </View>
+  );
+}
+
+function ArrangeButton({
+  children,
+  disabled,
+  label,
+  onPress,
+}: {
+  children: string;
+  disabled: boolean;
+  label: string;
+  onPress: () => void;
+}) {
+  const theme = useAppTheme();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.arrangeButton,
+        {
+          backgroundColor: disabled ? theme.colors.disabled : theme.colors.surfaceSoft,
+          borderColor: theme.colors.outline,
+        },
+        pressed && !disabled && styles.arrangeButtonPressed,
+      ]}
+    >
+      <Text
+        style={[
+          styles.arrangeButtonText,
+          { color: disabled ? theme.colors.disabledText : theme.colors.primaryHover },
+        ]}
+      >
+        {children}
+      </Text>
+    </Pressable>
+  );
+}
+
+function ArrangeTextButton({
+  label,
+  onPress,
+  primary = false,
+}: {
+  label: string;
+  onPress: () => void;
+  primary?: boolean;
+}) {
+  const theme = useAppTheme();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.arrangeTextButton,
+        {
+          backgroundColor: primary ? theme.colors.primarySoft : 'transparent',
+          borderColor: theme.colors.outline,
+        },
+        pressed && styles.arrangeButtonPressed,
+      ]}
+    >
+      <Text
+        style={[
+          styles.arrangeTextButtonText,
+          { color: primary ? theme.colors.primaryHover : theme.colors.muted },
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -269,13 +463,18 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.colors.background,
   },
   content: {
-    width: '100%',
-    maxWidth: 480,
-    alignSelf: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
     paddingTop: 18,
     paddingBottom: 132,
     gap: 20,
+  },
+  contentItem: {
+    ...Platform.select({
+      web: {},
+      default: {
+        marginHorizontal: 20,
+      },
+    }),
   },
   backgroundBloomTop: {
     position: 'absolute',
@@ -315,24 +514,47 @@ const styles = StyleSheet.create({
     fontFamily: tokens.typography.bodyFamily,
   },
   settingsButton: {
+    width: 44,
     minHeight: 44,
+    minWidth: 44,
     borderRadius: tokens.radius.pill,
     borderWidth: 1,
     borderColor: tokens.colors.outline,
     backgroundColor: tokens.colors.cardTranslucent,
-    paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   settingsButtonPressed: {
     opacity: 0.9,
   },
-  settingsButtonText: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: tokens.colors.muted,
-    fontFamily: tokens.typography.bodyFamily,
-    fontWeight: '700',
+  settingsGlyph: {
+    width: 22,
+    height: 22,
+    justifyContent: 'space-between',
+    paddingVertical: 3,
+  },
+  settingsGlyphLine: {
+    width: 22,
+    height: 2,
+    borderRadius: 2,
+  },
+  settingsGlyphDot: {
+    position: 'absolute',
+    width: 5,
+    height: 5,
+    borderRadius: 5,
+  },
+  settingsGlyphDotTop: {
+    top: 1.5,
+    left: 4,
+  },
+  settingsGlyphDotMiddle: {
+    top: 8.5,
+    right: 3,
+  },
+  settingsGlyphDotBottom: {
+    bottom: 1.5,
+    left: 10,
   },
   title: {
     fontSize: tokens.typography.title,
@@ -342,8 +564,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   progressCard: {
-    width: '100%',
-    maxWidth: '100%',
     backgroundColor: tokens.colors.cardStrong,
     borderRadius: tokens.radius.modal,
     padding: 18,
@@ -383,8 +603,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   firstStepCard: {
-    width: '100%',
-    maxWidth: '100%',
     backgroundColor: tokens.colors.cardTranslucent,
     borderRadius: tokens.radius.modal,
     padding: 16,
@@ -508,9 +726,8 @@ const styles = StyleSheet.create({
     fontFamily: tokens.typography.bodyFamily,
   },
   queueCard: {
-    width: '100%',
-    maxWidth: '100%',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: 12,
     backgroundColor: tokens.colors.cardTranslucent,
@@ -518,6 +735,12 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: tokens.colors.outline,
+  },
+  queueCardPressed: {
+    opacity: 0.92,
+  },
+  queueCardArranging: {
+    ...tokens.shadow,
   },
   queueIndex: {
     minWidth: 38,
@@ -546,6 +769,46 @@ const styles = StyleSheet.create({
     lineHeight: 23,
     color: tokens.colors.text,
     fontFamily: tokens.typography.headingFamily,
+    fontWeight: '700',
+  },
+  arrangeControls: {
+    width: '100%',
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingTop: 2,
+  },
+  arrangeButton: {
+    width: 44,
+    height: 44,
+    borderRadius: tokens.radius.pill,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  arrangeButtonPressed: {
+    opacity: 0.9,
+  },
+  arrangeButtonText: {
+    fontSize: 18,
+    lineHeight: 22,
+    fontFamily: tokens.typography.bodyBoldFamily,
+    fontWeight: '700',
+  },
+  arrangeTextButton: {
+    minHeight: 44,
+    borderRadius: tokens.radius.pill,
+    borderWidth: 1,
+    paddingHorizontal: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  arrangeTextButtonText: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: tokens.typography.bodyBoldFamily,
     fontWeight: '700',
   },
 });

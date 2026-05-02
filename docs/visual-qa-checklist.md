@@ -125,7 +125,7 @@ Use this checklist on a real device or simulator before release or before adding
 - Confirm Planning Accuracy clearly compares Planned and Actual tomatoes.
 - Confirm Planning Accuracy explains what planned tomatoes and actual completed tomatoes mean.
 - Confirm Task Progress is clamped to 0-100%.
-- Confirm Interruption bubble cluster is readable and supported by a ranked list.
+- Confirm Interruption breakdown is not crowded, uses a calm visual rhythm, and labels/counts remain readable.
 - Confirm Best Focus Time shows an honest learning state when fewer than 3 completed focus sessions exist.
 - Confirm dark mode charts remain readable.
 - Confirm Mainland Chinese Insights copy does not overflow on small screens.

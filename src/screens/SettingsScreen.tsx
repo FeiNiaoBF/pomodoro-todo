@@ -19,6 +19,7 @@ import { useAppTheme } from '../hooks/useAppTheme';
 import { useSettings } from '../hooks/useSettings';
 import { useTranslation } from '../hooks/useTranslation';
 import { tokens } from '../theme/tokens';
+import { appVersion, getBuildLabel } from '../utils/appVersion';
 
 type NumericSettingKey =
   | 'focusDurationMinutes'
@@ -209,6 +210,37 @@ export function SettingsScreen() {
                   </Pressable>
                 );
               })}
+            </View>
+          </View>
+        </View>
+
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: theme.colors.cardTranslucent,
+              borderColor: theme.colors.outline,
+            },
+          ]}
+        >
+          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{t('settings.about')}</Text>
+          <View style={styles.aboutHeader}>
+            <View style={styles.appMark}>
+              <Text style={[styles.appMarkText, { color: theme.colors.primaryHover }]}>1</Text>
+            </View>
+            <View style={styles.settingCopy}>
+              <Text style={[styles.settingLabel, { color: theme.colors.text }]}>{appVersion.name}</Text>
+              <Text style={[styles.settingHint, { color: theme.colors.muted }]}>{t('settings.aboutCopy')}</Text>
+            </View>
+          </View>
+          <View style={[styles.versionPlate, { backgroundColor: theme.colors.input, borderColor: theme.colors.outline }]}>
+            <View>
+              <Text style={[styles.versionLabel, { color: theme.colors.muted }]}>{t('settings.version')}</Text>
+              <Text style={[styles.versionValue, { color: theme.colors.text }]}>v{appVersion.version}</Text>
+            </View>
+            <View style={styles.buildInfo}>
+              <Text style={[styles.versionLabel, { color: theme.colors.muted }]}>{t('settings.build')}</Text>
+              <Text style={[styles.buildValue, { color: theme.colors.muted }]}>{getBuildLabel()}</Text>
             </View>
           </View>
         </View>
@@ -495,6 +527,68 @@ const styles = StyleSheet.create({
   },
   themeSection: {
     gap: 10,
+  },
+  aboutHeader: {
+    minHeight: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  appMark: {
+    width: 46,
+    height: 46,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: tokens.colors.primarySoft,
+  },
+  appMarkText: {
+    fontSize: 24,
+    lineHeight: 30,
+    color: tokens.colors.primaryHover,
+    fontFamily: tokens.typography.headingFamily,
+    fontWeight: '700',
+  },
+  versionPlate: {
+    minHeight: 66,
+    borderRadius: tokens.radius.card,
+    borderWidth: 1,
+    borderColor: tokens.colors.outline,
+    backgroundColor: tokens.colors.input,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  versionLabel: {
+    fontSize: 11,
+    lineHeight: 14,
+    color: tokens.colors.muted,
+    fontFamily: tokens.typography.bodyFamily,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  versionValue: {
+    fontSize: 19,
+    lineHeight: 25,
+    color: tokens.colors.text,
+    fontFamily: tokens.typography.headingFamily,
+    fontWeight: '700',
+  },
+  buildInfo: {
+    flex: 1,
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  buildValue: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: tokens.colors.muted,
+    fontFamily: tokens.typography.bodyFamily,
+    fontWeight: '700',
+    textAlign: 'right',
   },
   themeOptions: {
     flexDirection: 'row',

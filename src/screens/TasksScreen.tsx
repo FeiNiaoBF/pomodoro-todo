@@ -18,7 +18,7 @@ import { getTaskDisplayDescription, getTaskDisplayTitle } from '../utils/taskDis
 import { getTaskStateLabel } from '../utils/taskLabels';
 import { formatTomatoProgress } from '../utils/tomatoProgress';
 
-type TaskTab = 'today' | 'backlog' | 'completed';
+type TaskTab = 'today' | 'backlog' | 'completed' | 'archived';
 
 export function TasksScreen() {
   const theme = useAppTheme();
@@ -28,9 +28,11 @@ export function TasksScreen() {
     todayTasks,
     backlogTasks,
     completedTasks,
+    archivedTasks,
     addTask,
     updateTask,
     moveTaskToToday,
+    moveTaskToBacklog,
     setCurrentTask,
     completeTask,
     archiveTask,
@@ -45,10 +47,12 @@ export function TasksScreen() {
         return backlogTasks;
       case 'completed':
         return completedTasks;
+      case 'archived':
+        return archivedTasks;
       default:
         return todayTasks;
     }
-  }, [activeTab, backlogTasks, completedTasks, todayTasks]);
+  }, [activeTab, archivedTasks, backlogTasks, completedTasks, todayTasks]);
 
   const handleAddTask = () => {
     const title = inputValue.trim();
@@ -67,12 +71,15 @@ export function TasksScreen() {
     today: todayTasks.length,
     backlog: backlogTasks.length,
     completed: completedTasks.length,
+    archived: archivedTasks.length,
   };
   const activeTabGuide = activeTab === 'today'
     ? t('tasks.tabGuide.today')
     : activeTab === 'backlog'
       ? t('tasks.tabGuide.backlog')
-      : t('tasks.tabGuide.completed');
+      : activeTab === 'completed'
+        ? t('tasks.tabGuide.completed')
+        : t('tasks.tabGuide.archived');
 
   return (
     <SafeAreaView edges={['top']} style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
@@ -125,14 +132,20 @@ export function TasksScreen() {
           </View>
         </View>
 
-        <View style={styles.tabsRow}>
-          {(['today', 'backlog', 'completed'] as TaskTab[]).map(tab => {
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabsRow}
+        >
+          {(['today', 'backlog', 'completed', 'archived'] as TaskTab[]).map(tab => {
             const isActive = tab === activeTab;
             const label = tab === 'today'
               ? t('task.today')
               : tab === 'backlog'
                 ? t('tasks.backlog')
-                : t('tasks.completed');
+                : tab === 'completed'
+                  ? t('tasks.completed')
+                  : t('tasks.archived');
 
             return (
               <Pressable
@@ -159,7 +172,7 @@ export function TasksScreen() {
               </Pressable>
             );
           })}
-        </View>
+        </ScrollView>
 
         <View
           style={[
@@ -195,6 +208,7 @@ export function TasksScreen() {
                 isCurrentTask={task.id === currentTask?.id || task.state === 'active'}
                 activeTab={activeTab}
                 onMoveToToday={moveTaskToToday}
+                onMoveToBacklog={moveTaskToBacklog}
                 onSetCurrentTask={setCurrentTask}
                 onUpdateTask={updateTask}
                 onCompleteTask={completeTask}
@@ -213,6 +227,7 @@ function TaskCard({
   isCurrentTask,
   activeTab,
   onMoveToToday,
+  onMoveToBacklog,
   onSetCurrentTask,
   onUpdateTask,
   onCompleteTask,
@@ -222,6 +237,7 @@ function TaskCard({
   isCurrentTask: boolean;
   activeTab: TaskTab;
   onMoveToToday: (id: string) => void;
+  onMoveToBacklog: (id: string) => void;
   onSetCurrentTask: (id: string) => void;
   onUpdateTask: (id: string, patch: Partial<Task>) => void;
   onCompleteTask: (id: string) => void;
@@ -332,19 +348,25 @@ function TaskCard({
       </View>
 
       <View style={styles.actionRow}>
-        {activeTab === 'backlog' ? (
+        {(activeTab === 'backlog' || activeTab === 'completed' || activeTab === 'archived') ? (
           <ActionChip label={t('tasks.moveToToday')} onPress={() => onMoveToToday(task.id)} />
         ) : null}
 
-        {activeTab !== 'completed' && !isCurrentTask ? (
+        {activeTab === 'archived' ? (
+          <ActionChip label={t('tasks.restore')} onPress={() => onMoveToBacklog(task.id)} quiet />
+        ) : null}
+
+        {activeTab !== 'completed' && activeTab !== 'archived' && !isCurrentTask ? (
           <ActionChip label={t('tasks.setFocus')} onPress={() => onSetCurrentTask(task.id)} />
         ) : null}
 
-        {activeTab !== 'completed' ? (
+        {activeTab !== 'completed' && activeTab !== 'archived' ? (
           <ActionChip label={t('tasks.markComplete')} onPress={() => onCompleteTask(task.id)} />
         ) : null}
 
-        <ActionChip label={t('tasks.archive')} onPress={() => onArchiveTask(task.id)} quiet />
+        {activeTab !== 'archived' ? (
+          <ActionChip label={t('tasks.archive')} onPress={() => onArchiveTask(task.id)} quiet />
+        ) : null}
       </View>
     </View>
   );

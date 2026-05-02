@@ -14,6 +14,7 @@ export interface Task {
   estimatedTomatoes: number;
   completedTomatoes: number;
   state: TaskState;
+  sortOrder?: number;
   dueDate?: string;
   createdAt: number;
   updatedAt: number;

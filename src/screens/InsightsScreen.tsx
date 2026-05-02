@@ -8,8 +8,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ComparisonBars,
-  InterruptionBubbleCluster,
-  RankedInterruptionList,
+  InterruptionFlowList,
   TaskProgressBar,
   TimeBlockBars,
   WeeklyRoundedBarChart,
@@ -190,12 +189,7 @@ export function InsightsScreen() {
           />
           {hasInterruptions ? (
             <View style={styles.interruptionContent}>
-              <InterruptionBubbleCluster
-                items={insights.interruptionBreakdown}
-                labels={insights.interruptionLabels}
-                theme={theme}
-              />
-              <RankedInterruptionList
+              <InterruptionFlowList
                 items={insights.interruptionBreakdown}
                 labels={insights.interruptionLabels}
                 theme={theme}

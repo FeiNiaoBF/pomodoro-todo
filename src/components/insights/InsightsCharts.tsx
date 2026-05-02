@@ -1,7 +1,8 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { AppTheme } from '../../theme/appTheme';
 import { tokens } from '../../theme/tokens';
+import { useSettings } from '../../hooks/useSettings';
 import {
   InterruptionBreakdownItem,
   TimeBlockResult,
@@ -35,6 +36,12 @@ interface InterruptionBubbleClusterProps {
 }
 
 interface RankedInterruptionListProps {
+  items: InterruptionBreakdownItem[];
+  labels: Record<InterruptionReason, string>;
+  theme: AppTheme;
+}
+
+interface InterruptionFlowListProps {
   items: InterruptionBreakdownItem[];
   labels: Record<InterruptionReason, string>;
   theme: AppTheme;
@@ -270,6 +277,95 @@ export function RankedInterruptionList({ items, labels, theme }: RankedInterrupt
   );
 }
 
+export function InterruptionFlowList({ items, labels, theme }: InterruptionFlowListProps) {
+  const { settings } = useSettings();
+  const breath = useRef(new Animated.Value(0)).current;
+  const maxCount = Math.max(1, ...items.map(item => item.count));
+  const rankedItems = [...items].sort((a, b) => b.count - a.count);
+
+  useEffect(() => {
+    if (settings.reducedMotion) {
+      breath.setValue(0);
+      return;
+    }
+
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breath, {
+          toValue: 1,
+          duration: 2400,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(breath, {
+          toValue: 0,
+          duration: 2400,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    loop.start();
+
+    return () => {
+      loop.stop();
+    };
+  }, [breath, settings.reducedMotion]);
+
+  const scale = breath.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.96, 1.05],
+  });
+  const opacity = breath.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.58, 0.9],
+  });
+
+  return (
+    <View style={styles.flowList}>
+      {rankedItems.map((item, index) => {
+        const isTopReason = index === 0 && item.count > 0;
+        const percent = getPercent(item.count, maxCount, item.count > 0 ? 8 : 0);
+
+        return (
+          <View key={item.reason} style={styles.flowRow}>
+            <Animated.View
+              style={[
+                styles.flowPulse,
+                {
+                  backgroundColor: item.count > 0 ? theme.colors.primary : theme.colors.surfaceSoft,
+                  opacity: isTopReason ? opacity : 0.72,
+                  transform: [{ scale: isTopReason ? scale : 1 }],
+                },
+              ]}
+            />
+            <View style={styles.flowContent}>
+              <View style={styles.flowHeader}>
+                <Text style={[styles.flowLabel, { color: theme.colors.text }]} numberOfLines={1}>
+                  {labels[item.reason]}
+                </Text>
+                <Text style={[styles.flowValue, { color: theme.colors.muted }]}>{item.count}</Text>
+              </View>
+              <View style={[styles.flowTrack, { backgroundColor: theme.colors.surfaceSoft }]}>
+                <View
+                  style={[
+                    styles.flowFill,
+                    {
+                      width: `${percent}%`,
+                      backgroundColor: item.count > 0 ? theme.colors.primary : theme.colors.outline,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 export function TimeBlockBars({ blocks, labels, theme }: TimeBlockBarsProps) {
   const maxCount = Math.max(1, ...blocks.map(item => item.count));
 
@@ -473,5 +569,52 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontFamily: tokens.typography.bodyBoldFamily,
     fontWeight: '700',
+  },
+  flowList: {
+    gap: 13,
+  },
+  flowRow: {
+    minHeight: 46,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  flowPulse: {
+    width: 18,
+    height: 18,
+    borderRadius: 18,
+  },
+  flowContent: {
+    flex: 1,
+    gap: 7,
+  },
+  flowHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  flowLabel: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 19,
+    fontFamily: tokens.typography.bodyBoldFamily,
+    fontWeight: '700',
+  },
+  flowValue: {
+    width: 30,
+    textAlign: 'right',
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: tokens.typography.bodyBoldFamily,
+    fontWeight: '700',
+  },
+  flowTrack: {
+    height: 10,
+    borderRadius: tokens.radius.pill,
+    overflow: 'hidden',
+  },
+  flowFill: {
+    height: '100%',
+    borderRadius: tokens.radius.pill,
   },
 });

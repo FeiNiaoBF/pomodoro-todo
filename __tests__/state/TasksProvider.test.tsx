@@ -71,6 +71,49 @@ describe('TasksProvider', () => {
     expect(result.current.todayTasks.some(task => task.id === 'task-retro')).toBe(true);
   });
 
+  it('moveTaskToBacklog removes a task from today without deleting it', async () => {
+    const { result } = renderHook(() => useTasks(), { wrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
+
+    act(() => {
+      result.current.moveTaskToBacklog('task-emails');
+    });
+
+    expect(result.current.tasks.find(task => task.id === 'task-emails')?.state).toBe('backlog');
+    expect(result.current.todayTasks.some(task => task.id === 'task-emails')).toBe(false);
+    expect(result.current.backlogTasks.some(task => task.id === 'task-emails')).toBe(true);
+  });
+
+  it('reorderTodayTask moves today tasks up and down', async () => {
+    const { result } = renderHook(() => useTasks(), { wrapper });
+
+    await waitFor(() => expect(result.current.isHydrated).toBe(true));
+
+    expect(result.current.todayTasks.map(task => task.id)).toEqual([
+      'task-current',
+      'task-emails',
+    ]);
+
+    act(() => {
+      result.current.reorderTodayTask('task-emails', 'up');
+    });
+
+    expect(result.current.todayTasks.map(task => task.id)).toEqual([
+      'task-emails',
+      'task-current',
+    ]);
+
+    act(() => {
+      result.current.reorderTodayTask('task-emails', 'down');
+    });
+
+    expect(result.current.todayTasks.map(task => task.id)).toEqual([
+      'task-current',
+      'task-emails',
+    ]);
+  });
+
   it('setCurrentTask sets one active task and demotes the previous active task', async () => {
     const { result } = renderHook(() => useTasks(), { wrapper });
 
